@@ -1,0 +1,77 @@
+#console1 {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    width: 150vh;
+    height: 95vh;
+    margin: 0 auto;
+    padding: 2.5vh 0;
+    row-gap: 2.5vh;
+}
+
+#console, #title {
+    position: relative;
+    flex-grow: 1;
+}
+#console {
+    width: 150vh;
+    height: 82.5vh;
+    display: flex;
+    gap: 15vh;
+}
+#title,
+#console .section.bg {    
+    background-color: #555555;
+    box-shadow: 0 0 3vh #1D1D1D;
+    border-radius: 1vh;
+}
+
+#title {
+    width: 100%;
+    height: 10vh;
+    display: flex;
+}
+#console .section {
+    display: flex;
+    position: relative;
+}
+#console .tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: relative;
+    width: 40vh;
+
+    transition: transform .2s, box-shadow .2s, background-color .2s;
+}
+#console .tile:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 6vh #101010;
+    background-color: #666666;
+}
+#console .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#console .icon {
+    width: 10vh;
+}
+#console .label {
+    font-size: 2.5vh;
+    line-height: 5.5vh;
+}
+#console .dept {
+    position: relative;
+    overflow: hidden;
+    top: 2vh;
+    opacity: 0;
+}
+
+#console .section.shop .opview {
+    width: 50vh;
+}
+#console .section.shop .jobview {
+    width: 115vh;
+}

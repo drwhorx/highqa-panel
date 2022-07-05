@@ -1,0 +1,1 @@
+set PATH=C:\Users\AGreen\.cargo\bin;C:\ProgramData\nodejs;%PATH%

@@ -1,0 +1,123 @@
+.alpha {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    z-index: 100;
+
+    background-color: #00000088;
+    display: flex;
+    overflow-x: auto;
+
+    transition: transform .4s, opacity .4s;
+    opacity: 0;
+}
+.popup {
+    background-color: #555555;
+    box-shadow: 0 0 4vh #000000;
+    border-radius: 1vh;
+    margin: auto auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    transition: transform .4s, opacity .4s;
+    opacity: 0;
+    transform: translateY(5%);
+}
+.alpha.pop {
+    opacity: 1;
+}
+.popup.pop {
+    opacity: 1;
+    transform: translateY(0);
+}
+#prompt1,
+#prompt2 {
+    display: none;
+}
+.popup.prompt > table,
+.popup.prompt > div {
+    display: none;
+}
+
+#prompt1.jobs {
+    display: block;
+    min-width: 123vh;
+    max-width: 123vh;
+    height: 70vh;
+}
+#prompt1.jobs #jobs_prompt {
+    display: block;
+}
+
+#prompt1.ops {
+    display: block;
+    min-width: 48vh;
+    max-width: 48vh;
+    height: 70vh;
+}
+#prompt1.ops #ops_prompt {
+    display: block;
+}
+
+#prompt1.info {
+    display: block;
+    width: 100vh;
+    height: 70vh;
+}
+#prompt1.info #info_prompt {
+    display: block;
+}
+
+#prompt1.edit {
+    display: block;
+    width: 50vh;
+    height: 22.5vh;
+}
+#prompt1.edit #edit_prompt {
+    display: block;
+}
+#edit_prompt {
+    width: 50vh;
+    height: 22.5vh;
+}
+
+#prompt1.seri {
+    display: block;
+    width: 100vh;
+    height: 70vh;
+    margin-right: 2vh;
+    margin-left: auto;
+}
+#prompt2.seri {
+    display: block;
+    width: 30vh;
+    height: 70vh;
+    margin-left: 2vh;
+    margin-right: auto;
+}
+#prompt1.seri #seri_prompt1 {
+    display: block;
+}
+#prompt2.seri #seri_prompt2 {
+    display: block;
+}
+#seri_prompt1 {
+    width: 100vh;
+    height: 70vh;
+}
+#seri_prompt2 {
+    width: 30vh;
+    height: 70vh;
+}
+
+#prompt1.spc {
+    min-width: 147vh;
+    max-width: 147vh;
+    height: 76vh;
+    display: block;
+}
+#prompt1.spc #spc_prompt {
+    display: flex;
+}

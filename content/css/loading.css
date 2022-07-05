@@ -1,0 +1,63 @@
+#loading {
+    height: 0;
+    margin: 0 auto 0 auto;
+    display: flex;
+    position: relative;
+    z-index: 100;
+}
+
+#progress {
+    position: relative;
+    top: 5.5vh;
+    margin: 0 auto 0 auto;
+    width: 40vh;
+    height: 4vh;
+
+    text-align: center;
+    font-size: 2.5vh;
+    line-height: 4vh;
+
+    background-color: #8872e9;
+    box-shadow: 0 0 1vh #1D1D1D;
+    border-radius: 1vh;
+    opacity: 0;
+
+    transition: transform .2s, opacity .2s;
+    transform: translateY(-6vh);
+}
+
+#progress.pop {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+#progress::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(-45deg,
+            #ffffff30 20%,
+            transparent 20%,
+            transparent 50%,
+            #ffffff30 50%,
+            #ffffff30 70%,
+            transparent 70%,
+            transparent 100%);
+    z-index: 1;
+    background-size: 8vh 8vh;
+    animation: move 1s linear infinite;
+    border-radius: 1vh;
+    overflow: hidden;
+}
+
+@keyframes move {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 8vh 0;
+    }
+}

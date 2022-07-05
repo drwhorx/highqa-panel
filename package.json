@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.0.2"
+  },
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "key": "tauri signer generate -w ./highqapanel.key",
+    "verbose": "tauri build --verbose"
+  }
+}

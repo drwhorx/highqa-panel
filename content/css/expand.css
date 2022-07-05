@@ -1,0 +1,54 @@
+.sortup::after, .sortdown::after {
+    float: right;
+    padding-right: 1vh;
+    font-size: 2vh;
+}
+.sortup::after {
+    content: '\25B2';
+}
+.sortdown::after {
+    content: '\25BC';
+}
+.expand {
+    max-height: 0;
+    overflow: visible;
+}
+.expand .column.left {
+    z-index: 1;
+}
+.expand .column {
+    padding: 0;
+    max-height: 0;
+    top: 0;
+    position: sticky;
+    overflow: visible;
+}
+.expand .wrapper {
+    overflow: auto;
+}
+.expand .select {
+    min-width: fit-content;
+    width: 100%;
+    position: absolute;
+    
+    padding-top: 4.5vh;
+    
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    box-shadow: 0 0 1vh #1D1D1D;
+    border-radius: 1vh;
+    background-color: #555555;
+}
+.expand .option {
+    padding-left: 2vh;
+    padding-right: 2vh;
+    line-height: 4.5vh;
+    font-size: 2.5vh;
+    text-align: left;
+    transition: background-color .2s;
+}
+.expand .option:hover {
+    background-color: #777777;
+}

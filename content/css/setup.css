@@ -1,0 +1,36 @@
+body {
+    background-color: #444444;
+    color: white;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
+html, select, option {
+    font-family: 'Metropolis';
+}
+[hidden=true], [hidden=""] {
+    display: none !important;
+}
+#wrapper {
+    display: flex;
+    width: 100vw;
+}
+#sidebar {
+    background-color: #666666;
+    height: 100vh;
+    min-width: 30vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 3vh #1D1D1D;
+}
+#content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.copy {
+    display: none !important;
+}
+div {
+    user-select: none
+}

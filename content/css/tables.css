@@ -1,0 +1,47 @@
+.t1 {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.t1 th, .t1 td {
+    font-size: 2.5vh;
+    line-height: 4.5vh;
+    text-align: left;
+    padding: 0;
+    padding-left: 3vh;
+}
+.t1 .r1 {
+    cursor: pointer;
+    background-color: #555555;
+    transition: transform .2s, background-color .2s, box-shadow .2s;
+}
+.t1 .r1:hover {
+    transform: scale(1.03);
+    background-color: #777777;
+    box-shadow: 0 0 3vh #333333;
+}
+.t1 .h1 {
+    z-index: 4;
+    position: relative;
+    background-color: #4A4A4A;
+    box-shadow: 0 0 1vh #1D1D1D;
+}
+
+.t2 {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.t2 th, .t2 td {
+    font-size: 2.5vh;
+    line-height: 4.5vh;
+    text-align: left;
+    padding: 0;
+    padding-left: 2vh;
+}
+.t2 .h2 {
+    background-color: #4A4A4A;
+    box-shadow: 0 0 1vh #1D1D1D;
+}
+.gdt {
+    font-family: 'Y145-2018';
+    font-size: 2.75vh;
+}

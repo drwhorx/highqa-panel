@@ -1,0 +1,78 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devPath": "../content",
+    "distDir": "../content"
+  },
+  "package": {
+    "productName": "High QA Panel",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true
+    },
+    "bundle": {
+      "active": true,
+      "category": "DeveloperTool",
+      "copyright": "",
+      "deb": {
+        "depends": []
+      },
+      "externalBin": [],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "identifier": "com.dg.highqa.panel",
+      "longDescription": "",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "resources": [],
+      "shortDescription": "",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": "",
+        "webviewInstallMode": {
+          "type": "offlineInstaller"
+        },
+        "wix": {
+          "template": "./main.wxs"
+        }
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false,
+      "endpoints": [
+          "https://DG002-PC:8080/{{target}}/{{current_version}}"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IHJzaWduIGVuY3J5cHRlZCBzZWNyZXQga2V5ClJXUlRZMEl5STJFd1JHL2NoYnJ1c0NjcUVnUjJUbkZWejh0Z1pMdisrZzF2d2IrZFRjVUFBQkFBQUFBQUFBQUFBQUlBQUFBQVQzVjVWUzlSZ2xWYWtEcmFmTTg5YWdnekpGbHRwMExiemxyTE84YnRtaGkyaVczNDdMZDcrYlBxT1l1U29UMlY1cGJhZG1ySzE4NHlYN2s1cHpWMVhHbStSY3p5SG0vME5xRloxSENmVDhlK1NQQmpWN3FPK1lBeC9JbjFLQXhIZ2dvdjVHdlJwOUU9Cg=="
+    },
+    "windows": [
+      {
+        "center": true,
+        "fullscreen": false,
+        "height": 800,
+        "resizable": true,
+        "title": "High QA Panel",
+        "width": 1400
+      }
+    ]
+  }
+}
