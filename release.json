@@ -1,6 +1,6 @@
 {
-    "version": "v0.1.1",
-    "notes": "Beta Release",
+    "version": "v0.1.2",
+    "notes": "First updater version: future releases will follow this schema",
     "pub_date": "2022-07-05T18:22:04Z",
     "platforms": {
         "windows-x86_64": {
