@@ -1,11 +1,11 @@
 {
     "version": "v0.1.2",
     "notes": "First updater version: future releases will follow this schema",
-    "pub_date": "2022-07-05T18:22:04Z",
+    "pub_date": "2022-07-06T20:05:26Z",
     "platforms": {
         "windows-x86_64": {
             "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVGQjk5ODc1MjgzNjk5RjcKUldUM21UWW9kWmk1WDN6VHA0b2E1VE04dXhvNzBRdzZVK2N1Y0JUNys0RGhWVjl4dnpMZFZIaFUK",
-            "url": "https://github.com/drwhorx/highqa-panel/releases/download/v0.1.1/High.QA.Panel_0.1.1_x64_en-US.msi.zip"
+            "url": "https://github.com/drwhorx/highqa-panel/releases/download/v0.1.2/High.QA.Panel_0.1.2_x64_en-US.msi.zip"
         }
     }
 }
