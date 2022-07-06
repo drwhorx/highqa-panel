@@ -20,7 +20,7 @@
     gap: 15vh;
 }
 #title,
-#console .section.bg {    
+#console .section.bg {
     background-color: #555555;
     box-shadow: 0 0 3vh #1D1D1D;
     border-radius: 1vh;
@@ -37,23 +37,23 @@
 }
 #console .tile {
     display: flex;
-    align-items: center;
-    justify-content: center;
     flex-direction: column;
     position: relative;
     width: 40vh;
-
-    transition: transform .2s, box-shadow .2s, background-color .2s;
-}
-#console .tile:hover {
-    transform: scale(1.01);
-    box-shadow: 0 0 6vh #101010;
-    background-color: #666666;
 }
 #console .card {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
+
+    height: 100%;
+    transition: transform .2s, box-shadow .2s, background-color .2s;
+}
+#console .card:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 6vh #101010;
+    background-color: #666666;
 }
 #console .icon {
     width: 10vh;
@@ -67,6 +67,57 @@
     overflow: hidden;
     top: 2vh;
     opacity: 0;
+}
+
+#console .section.shop .job {
+    flex-direction: column;
+    padding: 1vh;
+    gap: 1vh;
+}
+#console .section.shop .job div.pdf {
+    height: 56.5vh;
+    display: flex;
+    overflow: auto;
+    position: relative;
+    gap: 5vh;
+    border-radius: 1vh;
+    padding: 0 5vh;
+}
+#console .section.shop .job div.pdf1 {
+    height: 56.5vh;
+    box-shadow: 0 0 2vh #101010 inset;
+    overflow: hidden;
+    border-radius: 1vh;
+}
+#console .section.shop .job canvas.pdf {
+    height: 49vh;
+    border-radius: 1vh;
+    margin: auto 0;
+    box-shadow: 0 0 2vh #101010;
+}
+
+#console .section.shop .job .header {
+    display: flex;
+    justify-content: space-around;
+}
+#console .section.shop .job .jobNo,
+#console .section.shop .job .partNo,
+#console .section.shop .op .jobNo,
+#console .section.shop .op .opNo {
+    font-size: 3vh;
+}
+
+#console .section.shop .op .partNo,
+#console .section.shop .op .opName {
+    font-size: 2.5vh;
+    padding-bottom: 1vh;
+}
+
+#console .section.shop .op {
+    flex-direction: column;
+    align-items: center;
+    padding: 2vh;
+    gap: .5vh;
 }
 
 #console .section.shop .opview {

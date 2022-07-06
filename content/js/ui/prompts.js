@@ -4,49 +4,60 @@ const ui = {};
 $(window).on("load", () => {
     ui.menu = $("#console").extend({
         depts: $("#console > .section"),
-        revert: async function () {
-            let show = ui.menu.depts.not(this);
-
-        }
     });
     ui.engi = $("#console .section.engi").extend({
         tile: $("#console .shop .tile"),
         groups: $("#console .engi .actions").extend({
-
+            
         })
     });
     ui.shop = $("#console .shop").extend({
+        card: $("#console .shop .tile .card").extend({
+            nav: function (nav) { this[0].onclick = nav }
+        }),
         tile: $("#console .shop .tile").extend({
-            job: $("#console .shop .tile .job").extend({
-                pdf: $("#console .shop .tile .job .pdf"),
-                jobNo: $("#console .shop .tile .job .jobNo"),
-                partNo: $("#console .shop .tile .job .partNo"),
-                customer: $("#console .shop .tile .job .customer")
-            })
+            
+        }),
+        job: $("#console .shop .tile .job").extend({
+            pdf: $("#console .shop .tile .job canvas.pdf").extend({
+                div: $("#console .shop .tile .job div.pdf")
+            }),
+            jobNo: $("#console .shop .tile .job .jobNo"),
+            partNo: $("#console .shop .tile .job .partNo"),
+            customer: $("#console .shop .tile .job .customer")
+        }),
+        op: $("#console .shop .tile .op").extend({
+            jobNo: $("#console .shop .tile .op .jobNo"),
+            partNo: $("#console .shop .tile .op .partNo"),
+            opNo: $("#console .shop .tile .op .opNo"),
+            opName: $("#console .shop .tile .op .opName"),
         }),
         jobs: $("#console .shop .jobview").extend({
             grid: $("#console .shop .jobview .grid").extend({
                 copy: $("#console .shop .jobview .grid .content.copy"),
             }),
             open: async function () {
-                ui.shop.tile[0].onclick = "";
                 loading(true);
+                ui.shop.card.nav("");
                 let hide = ui.menu.depts.not(ui.shop);
+
                 await hide.fadeout();
                 await all([
                     ui.menu.gap(0),
-                    hide.bounce(0),
+                    hide.width(0),
                     ui.shop.gap("5vh"),
-                    ui.shop.tile.bounce("30vh"),
+                    ui.shop.tile.width("30vh"),
                 ]);
-                ui.shop.tile[0].onclick = ui.shop.jobs.close;
+
+                ui.shop.card.nav(ui.shop.jobs.close);
                 let res = await ui.shop.jobs.load();
                 if (!res) return;
-                ui.shop.tile[0].onclick = "";
+                ui.shop.card.nav("");
+                
                 loading(false);
                 await ui.shop.jobs.fadein();
-                hide.$hide();
-                ui.shop.tile[0].onclick = ui.shop.jobs.close;
+                hide.hide();
+                ui.shop.card.nav(ui.shop.jobs.close);
             },
             load: async function () {
                 let grid = ui.shop.jobs.grid;
@@ -85,21 +96,23 @@ $(window).on("load", () => {
             },
             close: async function () {
                 stage1.cancel();
-                ui.shop.tile[0].onclick = "";
                 loading(true);
+                ui.shop.card.nav("");
                 let show = ui.menu.depts.not(ui.shop);
+
                 await ui.shop.jobs.fadeout();
-                ui.shop.jobs.$hide();
-                show.$show();
+                ui.shop.jobs.hide();
+                show.show();
                 await all([
                     ui.shop.gap(0),
-                    show.bounce("40vh"),
+                    show.width("40vh"),
                     ui.menu.gap("15vh"),
-                    ui.shop.tile.bounce("40vh")
+                    ui.shop.tile.width("40vh")
                 ]);
+
                 loading(false);
                 await show.fadein();
-                ui.shop.tile[0].onclick = ui.shop.jobs.open;
+                ui.shop.card.nav(ui.shop.jobs.open);
             }
         }),
         ops: $("#console .shop .opview").extend({
@@ -107,18 +120,27 @@ $(window).on("load", () => {
                 copy: $("#console .shop .opview .grid .content.copy")
             }),
             open: async function (row) {
-                ui.shop.tile[0].onclick = "";
                 loading(true);
+                ui.shop.card.nav("");
+
                 await ui.shop.jobs.fadeout();
-                await ui.shop.tile.bounce("95vh");
-                ui.shop.tile[0].onclick = ui.shop.ops.close;
+                await all([
+                    ui.shop.tile.width("95vh"),
+                    ui.shop.card.height("15vh"),
+                    ui.shop.tile.gap("5vh"),
+                    ui.shop.job.height("62.5vh")
+                ]);
+
+                ui.shop.card.nav(ui.shop.ops.close);
                 let res = await ui.shop.ops.load(row);
                 if (!res) return;
-                ui.shop.tile[0].onclick = "";
+                ui.shop.card.nav("");
+
                 loading(false);
+                ui.shop.job.fadein();
                 await ui.shop.ops.fadein();
-                ui.shop.jobs.$hide();
-                ui.shop.tile[0].onclick = ui.shop.ops.close;
+                ui.shop.jobs.hide();
+                ui.shop.card.nav(ui.shop.ops.close);
             },
             load: async function (row) {
                 let grid = ui.shop.ops.grid;
@@ -126,6 +148,23 @@ $(window).on("load", () => {
 
                 let res = await stage2.run();
                 if (!res) return console.log("canceled");
+                (async () => {
+                    let res = await load_files.promise;
+                    if (!res) return;
+                    ui.shop.job.find(".pdf.clone").remove();
+                    let canvases = await all(raw.drawings.map(async (res) => {
+                        let canvas = ui.shop.job.pdf.dupe();
+                        await drawpdf(res.file, res.get["PdfPageNo"], canvas[0]);
+                        return canvas;
+                    }));
+                    for (let canvas of canvases) {
+                        canvas.div.append(canvas);
+                    }
+                    ui.shop.job.pdf.div.fadein();
+                })();
+                ui.shop.job.jobNo.text("Job #: " + job.get["Number"]);
+                ui.shop.job.partNo.text("Part #: " + job.part.get["PartNumber"]);
+
                 grid.find(".content.clone").remove();
                 let ops = raw.ops
                     .filter(o => o.get["PartGUID"] == job.get["PartGUID"])
@@ -140,15 +179,26 @@ $(window).on("load", () => {
                 return res;
             },
             close: async function () {
-                ui.shop.tile[0].onclick = "";
                 stage2.cancel();
                 loading(true);
-                await ui.shop.ops.fadeout();
-                await ui.shop.tile.bounce("30vh");
-                ui.shop.ops.$hide();
+                ui.shop.card.nav("");
+
+                await all ([
+                    ui.shop.job.fadeout(),
+                    ui.shop.ops.fadeout()
+                ]);
+                ui.shop.job.hide();
+                ui.shop.job.pdf.div.hide();
+                ui.shop.ops.hide();
+                await all([
+                    ui.shop.card.height("82.5vh"),
+                    ui.shop.tile.gap(0),
+                    ui.shop.tile.width("30vh")
+                ])
+
                 loading(false);
                 await ui.shop.jobs.fadein();
-                ui.shop.tile[0].onclick = ui.shop.jobs.close;
+                ui.shop.card.nav(ui.shop.jobs.close);
             }
         }),
         planner: $("#console .shop .planner").extend({
@@ -156,28 +206,48 @@ $(window).on("load", () => {
                 copy: $("#console .shop .planner .grid .content.copy")
             }),
             open: async function (row) {
-                ui.shop.tile[0].onclick = "";
                 loading(true);
-                await ui.shop.ops.fadeout();
-                await ui.shop.tile.bounce("30vh");
-                ui.shop.tile[0].onclick = ui.shop.planner.close;
+                ui.shop.card.nav("");
+
+                await all([
+                    ui.shop.ops.fadeout(),
+                    ui.shop.job.fadeout()
+                ]);
+                ui.shop.job.hide();
+                await all([
+                    ui.shop.tile.width("30vh"),
+                    ui.shop.card.height("30vh"),
+                    ui.shop.op.height("43.5vh")
+                ]);
+
+                ui.shop.card.nav(ui.shop.planner.close);
                 let res = await ui.shop.planner.load(row);
                 if (!res) return;
-                ui.shop.tile[0].onclick = "";
+                ui.shop.card.nav("");
+                
                 loading(false);
-                await ui.shop.planner.fadein();
-                ui.shop.ops.$hide();
-                ui.shop.tile[0].onclick = ui.shop.planner.close;
+                await all([
+                    ui.shop.planner.fadein(),
+                    ui.shop.op.fadein()
+                ]);
+                ui.shop.ops.hide();
+                ui.shop.card.nav(ui.shop.planner.close);
             },
             load: async function (row) {
                 let planner = ui.shop.planner;
+                let job = user.job;
                 let op = user.op = $(row).prop("model")
 
                 let res = await stage3.run();
                 if (!res) return console.log("canceled");
+                ui.shop.op.jobNo.text(job.get["Number"]);
+                ui.shop.op.partNo.text(job.part.get["PartNumber"]);
+                ui.shop.op.opNo.text(op.get["Code"]);
+                ui.shop.op.opName.text(op.get["Title"]);
+
                 planner.find(".clone").remove();
                 let samples = raw.samples
-                    .filter(e => e.lot == user.job.lots.mfg)
+                    .filter(e => e.lot == job.lots.mfg)
                     .sort((a, b) => a.get["SerialNumber"].match(/\d+/)[0]
                         - b.get["SerialNumber"].match(/\d+/)[0]);
                 let dims = op.dims
@@ -221,15 +291,27 @@ $(window).on("load", () => {
                 return res;
             },
             close: async function () {
-                ui.shop.tile[0].onclick = "";
                 stage3.cancel();
                 loading(true);
-                await ui.shop.planner.fadeout();
-                await ui.shop.tile.bounce("95vh");
-                ui.shop.planner.$hide();
+                ui.shop.card.nav("");
+
+                await all([
+                    ui.shop.planner.fadeout(),
+                    ui.shop.op.fadeout()
+                ]);
+                ui.shop.op.hide();
+                ui.shop.planner.hide();
+                await all([
+                    ui.shop.tile.width("95vh"),
+                    ui.shop.card.height("15vh")
+                ]);
+
                 loading(false);
-                await ui.shop.ops.fadein();
-                ui.shop.tile[0].onclick = ui.shop.ops.close;
+                await all([
+                    ui.shop.ops.fadein(),
+                    ui.shop.job.fadein()
+                ]);
+                ui.shop.card.nav(ui.shop.ops.close);
             }
         })
     });
@@ -283,7 +365,7 @@ $.fn.extend({
             opacity: 0,
             top: "-5vh"
         });
-        this.$show();
+        this.show();
         this.animate({
             opacity: 1
         }, { duration: 300, queue: false })
@@ -291,16 +373,23 @@ $.fn.extend({
             top: 0
         }, 500, "easeBounce").promise();
     },
-    bounce: async function (width) {
-        await this.animate({
-            width: width
-        }, 800, "easeBounce").promise();
-        return this.css("display", "");
+    width: async function (width) {
+        await this.animate({ width }, {
+            duration: 800,
+            easing: "easeBounce",
+            queue: false,
+            step: () => this.css("overflow", "")
+        }).promise();
+        return this.css("display", "")
     },
-    linear: function (width) {
-        return this.animate({
-            width: width
-        }, 800).promise();
+    height: async function (height) {
+        await this.animate({ height }, {
+            duration: 800,
+            easing: "easeBounce",
+            queue: false,
+            step: () => this.css("overflow", "")
+        }).promise();
+        return this.css("display", "")
     },
     gap: async function (gap) {
         await this.animate({
@@ -309,7 +398,9 @@ $.fn.extend({
         return this.css("display", "");
     },
     dupe: function () {
-        let clone = $.extend(this.clone(true, true), this);
+        let clone1 = $(this[0]).clone(true, true);
+        let clone2 = $.extend({}, this);
+        let clone = $.extend(clone2, clone1);
         clone.removeClass("copy");
         clone.addClass("clone");
         return clone;
@@ -319,7 +410,7 @@ $.fn.extend({
 $(window).on("load", () => {
     expand.init(ui.shop.jobs.grid);
 
-    ui.shop.tile[0].onclick = ui.shop.jobs.open;
+    ui.shop.card.nav(ui.shop.jobs.open)
     ui.shop.jobs.grid.copy.click(function () {
         ui.shop.ops.open(this);
     });
@@ -374,7 +465,7 @@ const expand = {
                 if (e.which != 1) return;
                 if (!select.hasClass("open")) {
                     handle = setTimeout(async () => {
-                        select.$show();
+                        select.show();
                         select.toggleClass("open", true);
                         option.animate({
                             height: "4.5vh"
@@ -382,7 +473,7 @@ const expand = {
                         await options.animate({
                             height: 0
                         }, 500, "easeBounce").promise();
-                        columns.$hide();
+                        columns.hide();
                         columns.toggleClass("open", false);
                     }, 500);
                 }
@@ -405,14 +496,14 @@ const expand = {
                     await options.animate({
                         height: 0
                     }, 500, "easeBounce").promise();
-                    columns.$hide();
+                    columns.hide();
                     columns.toggleClass("open", false);
                 } else if (handle == -1) {
                     select.toggleClass("open", false);
                     await options.animate({
                         height: 0
                     }, 500, "easeBounce").promise();
-                    select.$hide();
+                    select.hide();
                 }
                 handle = -1;
             });
@@ -423,7 +514,7 @@ const expand = {
                 await options.animate({
                     height: "0px"
                 }, 500, "easeBounce").promise();
-                selects.$hide();
+                selects.hide();
             });
             expand.append(column);
         });

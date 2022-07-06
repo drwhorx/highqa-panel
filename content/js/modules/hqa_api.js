@@ -30,6 +30,29 @@ class POST {
                 return this.res;
         }
     }
+    async pdf() {
+        let success, bearer;
+        while (!success) {
+            document.bearer = await this.bearer;
+            this.res = await $.ajax({
+                url: route + this.path,
+                type: 'POST',
+                data: JSON.stringify(this.req),
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                contentType: "application/json; charset=utf-8",
+                success: () => success = true,
+                headers: {
+                    Authorization: document.bearer
+                }
+            });
+            if (!success)
+                document.bearer = "";
+            else
+                return this.res;
+        }
+    }
     async append() {
         if (!this.res) return await this.send();
         let dupe = await new POST(this.path, this.req).send();

@@ -14,12 +14,12 @@
     <link rel="stylesheet" href="css/menus/planner.css">
     <link rel="stylesheet" href="css/menus/console.css">
 
-    <link rel="stylesheet" href="css/alerts/alerts.css">
-    <link rel="stylesheet" href="css/alerts/jobs.css">
-    <link rel="stylesheet" href="css/alerts/ops.css">
-    <link rel="stylesheet" href="css/alerts/seri.css">
-    <link rel="stylesheet" href="css/alerts/info.css">
-    <link rel="stylesheet" href="css/alerts/spc.css">
+    <link rel="stylesheet" href="css/popups/popups.css">
+    <link rel="stylesheet" href="css/popups/jobs.css">
+    <link rel="stylesheet" href="css/popups/ops.css">
+    <link rel="stylesheet" href="css/popups/seri.css">
+    <link rel="stylesheet" href="css/popups/info.css">
+    <link rel="stylesheet" href="css/popups/spc.css">
 
     <script src="js/lib/jquery-3.6.0.min.js"></script>
     <script src="js/lib/jquery-dateformat.min.js"></script>
@@ -84,8 +84,8 @@
                     </div>
                     <div id="console">
                         <div class="section engi">
-                            <div class="section tile bg">
-                                <div class="card">
+                            <div class="section tile">
+                                <div class="section card bg">
                                     <img class="icon" src="css/img/gears.svg">
                                     <div class="label">Engineering</div>
                                 </div>
@@ -105,19 +105,27 @@
                             </div>
                         </div>
                         <div class="section shop">
-                            <div class="section tile bg">
-                                <div class="section card">
+                            <div class="section tile">
+                                <div class="section card bg">
                                     <img class="icon" src="css/img/caliper.png">
                                     <div class="label">Shop Floor</div>
                                 </div>
-                                <div class="section job" hidden>
-                                    <canvas class="pdf"></canvas>
+                                <div class="section job bg" hidden>
+                                    <div class="header">
+                                        <div class="jobNo"></div>
+                                        <div class="partNo"></div>
+                                    </div>
+                                    <div class="pdf1">
+                                        <div class="pdf" hidden>
+                                            <canvas class="copy pdf"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section op bg" hidden>
                                     <div class="jobNo"></div>
                                     <div class="partNo"></div>
-                                    <div class="customer"></div>
-                                </div>
-                                <div class="section planner" hidden>
-
+                                    <div class="opNo"></div>
+                                    <div class="opName"></div>
                                 </div>
                             </div>
                             <div class="section planner bg" hidden>
@@ -212,8 +220,8 @@
                             </div>
                         </div>
                         <div class="section qual">
-                            <div class="section tile bg">
-                                <div class="section card">
+                            <div class="section tile">
+                                <div class="section card bg">
                                     <img class="icon" src="css/img/chart.png">
                                     <div class="label">Quality</div>
                                 </div>

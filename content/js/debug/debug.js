@@ -44,65 +44,27 @@ const test5 = async () => {
     //draw_hist(x_data, y_data, usl, lsl);
 }
 
-const fast = async () => {
-    let time1 = new Date();
-    let samples = raw.samples;
-    let length = mathjs.ceil(samples.length / 5);
-    let groups = Array.from({ length }, (_, i) => samples.slice(i * 5, i * 5 + 5));
-    let res = await Promise.all(groups.map(async group => {
-        if (group.length == 0) return [];
-        let query = API("placeholders/list");
-        query.req["SampleGUIDs"] = group.map(res => res.get["GUID"]).join(",");
-        return await query.pages();
-    }));
-    console.log(new Date() - time1)
-}
-
-const drawpdf = async (drawing, pageNo) => {
+const drawpdf = async (drawing, pageNo, canvas) => {
     var pdfjsLib = window['pdfjs-dist/build/pdf'];
-    let blob = new Blob([drawing.get], { type: "application/pdf" });
-    let url = window.URL.createObjectURL(blob);
-
-    let pdf = await pdfjsLib.getDocument(url).promise;
-
-    let canvas = ui.shop.tile.job.pdf;
-    let context = canvas.getContext('2d');
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "./js/lib/pdf.worker.js";
+ 
+    let url = window.URL.createObjectURL(drawing.get);
+    console.log(url)
+    let pdf = await pdfjsLib.getDocument({ url, maxImageSize: 2147500037 }).promise;
     let page = await pdf.getPage(pageNo);
-    let viewport = page.getViewport({ scale: 1 });
-    page.render({
-        canvasContext: context,
-        viewport: viewport
-    })
-}
+    let context = canvas.getContext('2d');
 
-const dodrawing = async (drawing) => {
-    let guid = drawing.get["GUID"];
-    let x = 0, y = 0, error = true;
-    while (error && x < 50) {
-        try {
-            await $.ajax({
-                url: `http://dghighqa-pc:85/_images/drawings/${guid}/Tiles/Z1/Y001-X${String(++x).padStart(3, "0")}.png`,
-                type: 'GET',
-            })
-            error = false;
-        } catch (err) {
-        }
+    try {
+        let viewport = page.getViewport({ scale: 1 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        return await page.render({
+            canvasContext: context,
+            viewport: viewport
+        }).promise;
+    } catch (err) {
     }
-    error = true;
-    while (error && y < 50) {
-        try {
-            await $.ajax({
-                url: `http://dghighqa-pc:85/_images/drawings/${guid}/Tiles/Z1/Y${String(++y).padStart(3, "0")}-X001.png`,
-                type: 'GET',
-            })
-            error = false;
-        } catch (err) {
-        }
-    }
-    console.log(x + "," + y)
 }
 
 $.easing.easeBounce = d3.easeBounce;
@@ -110,10 +72,10 @@ $.fn.extend({
     pickClass: function (arr) {
         return arr.filter(e => this.hasClass(e))[0];
     },
-    $show: function () {
+    show: function () {
         return this.removeAttr("hidden")
     },
-    $hide: function () {
+    hide: function () {
         return this.prop("hidden", true)
     }
 })

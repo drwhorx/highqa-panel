@@ -127,19 +127,24 @@ let get_drawings = {
 let load_files = {
     parents: { get_drawings },
     run: async ({ get_drawings }, valid) => {
-        raw.drawings = get_drawings;
-        let query1 = API("filestorage/token");
-        let query2 = API("filestorage/download");
-        let files = {};
+        let guids = [];
         for (let res of get_drawings) {
-            if (files[res["DrawingFile"]]) continue;
-            query1.req["GUID"] = res["DrawingFile"];
+            if (!guids.includes(res["DrawingFile"]))
+                guids.push(res["DrawingFile"]);
+        }
+        let files = {};
+        await Promise.all(guids.map(async res => {
+            let query1 = API("filestorage/token");
+            let query2 = API("filestorage/download");
+            query1.req["GUID"] = res;
             query2.req["Token"] = (await query1.send())["Token"];
             if (!valid()) return;
-            let file = await query2.send();
-            if (!valid()) return;
-            files[res["DrawingFile"]] = file;
-        }
+            files[res] = await query2.pdf();
+        }))
+        if (!valid()) return;
+        
+        model.file = {};
+        model.drawing = {};
         for (let file in files) {
             model.file[file] = models.file(files[file]);
         }
@@ -149,8 +154,8 @@ let load_files = {
             drawing.file = file;
             file.drawings.push(drawing);
         }
-        raw.drawings = Object.values(model.drawing);
         raw.files = Object.values(model.file);
+        return raw.drawings = Object.values(model.drawing);
     },
 }
 let dim_ops = {
