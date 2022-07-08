@@ -20,8 +20,8 @@ $(window).on("load", async () => {
             ui.prompts.close();
         }
     });
-    alert("v4");
-    let update = await tauri.updater.checkUpdate();
+    console.log("v3")
+    let update = await tauri?.updater.checkUpdate();
     if (update && update.shouldUpdate) {
         let info = update.manifest;
         let node = ui.prompts.updater;
@@ -30,7 +30,7 @@ $(window).on("load", async () => {
         node.notes.text(info.body);
         ui.prompts.open("updater");
         let res = await tauri.updater.installUpdate();
-        alert(res.toString());
+        console.log(res);
     }
 })
 
