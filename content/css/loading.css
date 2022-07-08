@@ -1,4 +1,4 @@
-#loading {
+.loading {
     height: 0;
     margin: 0 auto 0 auto;
     display: flex;
@@ -6,9 +6,8 @@
     z-index: 100;
 }
 
-#progress {
+.progress {
     position: relative;
-    top: 5.5vh;
     margin: 0 auto 0 auto;
     width: 40vh;
     height: 4vh;
@@ -20,18 +19,9 @@
     background-color: #8872e9;
     box-shadow: 0 0 1vh #1D1D1D;
     border-radius: 1vh;
-    opacity: 0;
-
-    transition: transform .2s, opacity .2s;
-    transform: translateY(-6vh);
 }
 
-#progress.pop {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-#progress::after {
+.progress::after {
     content: "";
     position: absolute;
     top: 0;

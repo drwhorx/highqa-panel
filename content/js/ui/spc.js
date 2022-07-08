@@ -59,8 +59,8 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 is_r ? [ucl, lcl, null, null, bar]
                     : [ucl, lcl, calc.usl, calc.lsl, bar];
             let plot =
-                is_r ? results.map((model, i) => ({ x: i + 1, y: calc.mr[i - 1], model: model})).slice(1)
-                    : results.map((model, i) => ({ x: i + 1, y: model.get["Data"], model: model}));
+                is_r ? results.map((model, i) => ({ x: i + 1, y: calc.mr[i - 1], model: model })).slice(1)
+                    : results.map((model, i) => ({ x: i + 1, y: model.get["Data"], model: model }));
 
             let y = d3.scaleLinear()
                 .domain(range)
@@ -131,7 +131,7 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .duration(500)
                 .ease(d3.easeBounce)
                 .attr("cy", d => y(d.y));
-            
+
             let line = svg.append("line")
                 .attr("x1", 0)
                 .attr("x2", 0)
@@ -140,42 +140,44 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .style("stroke-width", 0.5)
                 .style("stroke", "#00ffe7")
                 .style("opacity", 0)
-            svg.on('pointermove', (e) => {
-                let svgX = d3.pointer(e)[0];
-                let svgY = d3.pointer(e)[1];
-                circ.style("fill", "#7CC2FF");
-                console.log(svgX + "," + svgY);
-                let plotX = x.invert(svgX);
-                let plotY = y.invert(svgY);
-                let bisect = d3.bisector((d, x) => $(d).attr("cx") - x).center;
-                let point = circ.nodes()[bisect(circ.nodes(), svgX)];
-                d3.select(point).style("fill", "white");
 
-                line.attr("x1", svgX);
-                line.attr("x2", svgX);
-                line.style("opacity", 1);
-                $("#spc_tip").css("left", e.pageX + 10);
-                if (plotY > bar) {
-                    $("#spc_tip").css("top", "");
-                    $("#spc_tip").css("bottom", window.innerHeight - e.pageY + 30);
-                } else {
-                    $("#spc_tip").css("top", e.pageY + 30);
-                    $("#spc_tip").css("bottom", "");
+            trackPointer({
+                move: (e) => {
+                    let svgX = d3.pointer(e)[0];
+                    let svgY = d3.pointer(e)[1];
+                    circ.style("fill", "#7CC2FF");
+                    let plotX = x.invert(svgX);
+                    let plotY = y.invert(svgY);
+                    let bisect = d3.bisector((d, x) => $(d).attr("cx") - x).center;
+                    let point = circ.nodes()[bisect(circ.nodes(), svgX)];
+                    d3.select(point).style("fill", "white");
+
+                    line.attr("x1", svgX);
+                    line.attr("x2", svgX);
+                    line.style("opacity", 1);
+                    $("#spc_tip").css("left", e.pageX + 10);
+                    if (plotY > bar) {
+                        $("#spc_tip").css("top", "");
+                        $("#spc_tip").css("bottom", window.innerHeight - e.pageY + 30);
+                    } else {
+                        $("#spc_tip").css("top", e.pageY + 30);
+                        $("#spc_tip").css("bottom", "");
+                    }
+
+                    let result = d3.select(point).data()[0].model;
+                    $("#spc_tip .data").text(result.get["Data"].toFixed(4));
+                    $("#spc_tip .sample").text(result.sample.get["SerialNumber"]);
+                    $("#spc_tip .status").text(result.get["StatusText"]);
+                    $("#spc_tip .inspector").text(result.inspector.get["FirstName"] + " " + result.inspector.get["LastName"]);
+                    $("#spc_tip .timestamp").text($.format.date(result.get["InspectedDate"], "E MM/dd/yyyy hh:mma"));
+                    $("#spc_tip").show();
+                },
+                end: (e) => {
+                    line.style("opacity", 0);
+                    circ.style("fill", "#7CC2FF");
+                    $("#spc_tip").hide();
                 }
-
-                let result = d3.select(point).data()[0].model;
-                $("#spc_tip .data").text(result.get["Data"].toFixed(4));
-                $("#spc_tip .sample").text(result.sample.get["SerialNumber"]);
-                $("#spc_tip .status").text(result.get["StatusText"]);
-                $("#spc_tip .inspector").text(result.inspector.get["FirstName"] + " " + result.inspector.get["LastName"]);
-                $("#spc_tip .timestamp").text($.format.date(result.get["InspectedDate"], "E MM/dd/yyyy hh:mma"));
-                $("#spc_tip").toggleClass("hover", true);
-            });
-            svg.on('pointerup', (e) => {
-                line.style("opacity", 0);
-                circ.style("fill", "#7CC2FF");
-                $("#spc_tip").toggleClass("hover", false);
-            });
+            }, svg)
         });
 
         let hists = d3.selectAll($([$(x_hist)[0], $(r_hist)[0]]));
@@ -191,7 +193,7 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
             let bar = is_r ? calc.r_bar : calc.x_bar;
             let sig = is_r ? calc.r_sig : calc.x_sig;
             let dist = ucl - bar;
-            let height = 
+            let height =
                 is_r ? ucl / 6 : dist / 3;
             let range =
                 is_r ? [-0.25 * ucl, 1.25 * ucl]
@@ -200,8 +202,8 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 is_r ? [ucl, lcl, null, null, bar]
                     : [ucl, lcl, calc.usl, calc.lsl, bar];
             let plot =
-                is_r ? results.map((model, i) => ({ x: i + 1, y: calc.mr[i - 1], model: model})).slice(1)
-                    : results.map((model, i) => ({ x: i + 1, y: model.get["Data"], model: model}));
+                is_r ? results.map((model, i) => ({ x: i + 1, y: calc.mr[i - 1], model: model })).slice(1)
+                    : results.map((model, i) => ({ x: i + 1, y: model.get["Data"], model: model }));
             let chart =
                 is_r ? d3.select(r_chart)
                     : d3.select(x_chart);
@@ -286,46 +288,45 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .style("stroke-width", 0.5)
                 .style("stroke", "#00ffe7")
                 .style("opacity", 0)
-            svg.on('pointermove', (e) => {
-                let svgX = d3.pointer(e)[0];
-                let svgY = d3.pointer(e)[1];
-                let plotX = x.invert(svgX);
-                let plotY = y.invert(svgY);
-                let circ = chart.property("circ");
-
-                circ.style("fill", "#7CC2FF");
-                rect.style("fill", "#41a6ff");
-
-                let bisect = d3.bisector((d, x) => (d.x1 + d.x0) / 2 - x).center;
-                let index = bisect(bins, plotY);
-                let points = bins[index].map(d0 => circ.nodes()[d0.x - (is_r ? 2 : 1)]);
-                d3.selectAll(points).style("fill", "white");
-                let rects = rect.nodes()[index];
-                d3.select(rects).style("fill", "#7CC2FF");
-
-                line.attr("y1", svgY);
-                line.attr("y2", svgY);
-                line.style("opacity", 1);
-                $("#spc_tip").css("left", e.pageX + 10);
-                if (plotY > bar) {
-                    $("#spc_tip").css("top", "");
-                    $("#spc_tip").css("bottom", window.innerHeight - e.pageY + 30);
-                } else {
-                    $("#spc_tip").css("top", e.pageY + 30);
-                    $("#spc_tip").css("bottom", "");
+            trackPointer({
+                move: (e) => {
+                    let svgX = d3.pointer(e)[0];
+                    let svgY = d3.pointer(e)[1];
+                    let plotX = x.invert(svgX);
+                    let plotY = y.invert(svgY);
+                    let circ = chart.property("circ");
+    
+                    circ.style("fill", "#7CC2FF");
+                    rect.style("fill", "#41a6ff");
+    
+                    let bisect = d3.bisector((d, x) => (d.x1 + d.x0) / 2 - x).center;
+                    let index = bisect(bins, plotY);
+                    let points = bins[index].map(d0 => circ.nodes()[d0.x - (is_r ? 2 : 1)]);
+                    d3.selectAll(points).style("fill", "white");
+                    let rects = rect.nodes()[index];
+                    d3.select(rects).style("fill", "#7CC2FF");
+    
+                    line.attr("y1", svgY);
+                    line.attr("y2", svgY);
+                    line.style("opacity", 1);
+                    $("#spc_tip").css("left", e.pageX + 10);
+                    if (plotY > bar) {
+                        $("#spc_tip").css("top", "");
+                        $("#spc_tip").css("bottom", window.innerHeight - e.pageY + 30);
+                    } else {
+                        $("#spc_tip").css("top", e.pageY + 30);
+                        $("#spc_tip").css("bottom", "");
+                    }
+                    $("#spc_tip").toggleClass("hover", true);
+                },
+                end: (e) => {
+                    let circ = chart.property("circ");
+                    line.style("opacity", 0);
+                    circ.style("fill", "#7CC2FF");
+                    rect.style("fill", "#41a6ff");
+                    $("#spc_tip").toggleClass("hover", false);
                 }
-                // $("#spc_tip").toggleClass("hover", true);
-            });
-            svg.on('pointerup', (e) => {
-                let circ = chart.property("circ");
-
-                line.style("opacity", 0);
-                circ.style("fill", "#7CC2FF");
-                rect.style("fill", "#41a6ff");
-                $("#spc_tip").toggleClass("hover", false);
-            });
+            }, svg)
         });
     })();
-
-
 }

@@ -8,7 +8,7 @@ $(window).on("load", () => {
     ui.engi = $("#console .section.engi").extend({
         tile: $("#console .shop .tile"),
         groups: $("#console .engi .actions").extend({
-            
+
         })
     });
     ui.shop = $("#console .shop").extend({
@@ -16,7 +16,7 @@ $(window).on("load", () => {
             nav: function (nav) { this[0].onclick = nav }
         }),
         tile: $("#console .shop .tile").extend({
-            
+
         }),
         job: $("#console .shop .tile .job").extend({
             pdf: $("#console .shop .tile .job canvas.pdf").extend({
@@ -53,7 +53,7 @@ $(window).on("load", () => {
                 let res = await ui.shop.jobs.load();
                 if (!res) return;
                 ui.shop.card.nav("");
-                
+
                 loading(false);
                 await ui.shop.jobs.fadein();
                 hide.hide();
@@ -152,7 +152,10 @@ $(window).on("load", () => {
                     let res = await load_files.promise;
                     if (!res) return;
                     ui.shop.job.find(".pdf.clone").remove();
-                    let canvases = await all(raw.drawings.map(async (res) => {
+                    let drawings = raw.drawings.sort((a, b) =>
+                        a.get["Title"].localeCompare(b.get["Title"])
+                        || a.get["PdfPageNo"] - b.get["PdfPageNo"]);
+                    let canvases = await all(drawings.map(async (res) => {
                         let canvas = ui.shop.job.pdf.dupe();
                         await drawpdf(res.file, res.get["PdfPageNo"], canvas[0]);
                         return canvas;
@@ -183,7 +186,7 @@ $(window).on("load", () => {
                 loading(true);
                 ui.shop.card.nav("");
 
-                await all ([
+                await all([
                     ui.shop.job.fadeout(),
                     ui.shop.ops.fadeout()
                 ]);
@@ -224,7 +227,7 @@ $(window).on("load", () => {
                 let res = await ui.shop.planner.load(row);
                 if (!res) return;
                 ui.shop.card.nav("");
-                
+
                 loading(false);
                 await all([
                     ui.shop.planner.fadein(),
@@ -321,27 +324,28 @@ $(window).on("load", () => {
     ui.planner = $("#planner").extend({
 
     });
-    ui.prompts = $("#prompts").extend({
-        popups: $("#prompts .popup"),
-        current: "",
-        open: async () => {
-            ui.prompts.removeAttr("hidden");
-            await timeout(50);
-            ui.prompts.addClass("pop");
-            ui.prompts.popups.addClass("pop");
+    ui.prompts = $(".alpha.prompt").extend({
+        popups: $(".alpha.prompt .popup"),
+        open: async (name) => {
+            await all([
+                ui.prompts.fadein(),
+                ui.prompts.find(".popup." + name).fadein()
+            ]);
         },
         close: async () => {
-            ui.prompts.removeClass("pop");
-            ui.prompts.popups.removeClass("pop");
-            await timeout(400);
-            ui.prompts.set("");
-            ui.prompts.prop("hidden", true);
+            await all([
+                ui.prompts.fadeout(),
+                ui.prompts.popups.fadeout()
+            ]);
+            ui.prompts.popups.hide()
+            ui.prompts.hide();
         },
-        set: async (name) => {
-            ui.prompts.popups.toggleClass(ui.prompts.current, false);
-            ui.prompts.popups.toggleClass(name, true);
-            ui.prompts.current = name;
-        }
+        spc: $(".spc.popup"),
+        updater: $(".updater.popup").extend({
+            title: $(".updater.popup .title"),
+            notes: $(".updater.popup .notes"),
+            loading: $(".updater.popup .loading")
+        })
     });
     ui.messages = $("#messages").extend({
 

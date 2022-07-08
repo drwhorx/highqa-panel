@@ -14,11 +14,8 @@
     <link rel="stylesheet" href="css/menus/planner.css">
     <link rel="stylesheet" href="css/menus/console.css">
 
+    <link rel="stylesheet" href="css/popups/updater.css">
     <link rel="stylesheet" href="css/popups/popups.css">
-    <link rel="stylesheet" href="css/popups/jobs.css">
-    <link rel="stylesheet" href="css/popups/ops.css">
-    <link rel="stylesheet" href="css/popups/seri.css">
-    <link rel="stylesheet" href="css/popups/info.css">
     <link rel="stylesheet" href="css/popups/spc.css">
 
     <script src="js/lib/jquery-3.6.0.min.js"></script>
@@ -53,8 +50,8 @@
 </head>
 
 <body>
-    <div id="loading">
-        <div id="progress">
+    <div class="loading" hidden>
+        <div class="progress">
             <div>loading</div>
         </div>
     </div>
@@ -232,9 +229,9 @@
             </div>
         </div>
     </div>
-    <div id="prompts" class="alpha prompt" hidden>
-        <div id="prompt1" class="popup prompt">
-            <div id="info_prompt" class="grid1 vertical">
+    <div class="alpha prompt" hidden>
+        <div class="info popup" hidden>
+            <div class="grid1 vertical">
                 <table class="grid">
                     <thead></thead>
                     <tr class="bg1">
@@ -266,7 +263,9 @@
                     </tr>
                 </table>
             </div>
-            <div id="seri_prompt1" class="grid1 vertical">
+        </div>
+        <div class="seri1 popup" hidden>
+            <div class="grid1 vertical">
                 <table class="grid">
                     <thead></thead>
                     <tr class="bg1">
@@ -298,7 +297,30 @@
                     </tr>
                 </table>
             </div>
-            <div id="edit_prompt" class="grid1 vertical dohover">
+        </div>
+        <div class="seri2 popup" hidden>
+            <div class="grid1 vertical dohover">
+                <table class="grid">
+                    <tr class="bg1">
+                        <td></td>
+                    </tr>
+                    <tr class="bg2">
+                        <td style="min-width: 0"></td>
+                    </tr>
+                    <tr class="top">
+                        <td style="min-width: 30vh">S/N</td>
+                    </tr>
+                    <tr class="copy content">
+                        <td>VL0010001</td>
+                    </tr>
+                    <tr class="clone content">
+                        <td>VL0010001</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="edit popup" hidden>
+            <div class="grid1 vertical dohover">
                 <table class="grid">
                     <thead></thead>
                     <tr class="bg1">
@@ -324,166 +346,147 @@
                     </tr>
                 </table>
             </div>
-            <div id="spc_prompt">
-                <div class="s1">
-                    <div class="q1 dimNo"></div>
-                    <div class="q2 dimReq gdt"></div>
-                </div>
-                <div class="s2">
-                    <div class="q3">
-                        <div class="s4">
-                            <div class="q1">
-                                <svg id="spc_canvas1" viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
-                            </div>
-                            <div class="q2">
-                                <svg id="spc_canvas2" viewBox="0 0 93.75 100" preserveAspectRatio="xMinYMin meet"></svg>
-                            </div>
-                            <div class="q4 xbar grid1 vertical">
-                                <table class="grid">
-                                    <colgroup>
-                                        <col style="width: 12vh">
-                                        <col style="width: 17vh">
-                                    </colgroup>
-                                    <thead></thead>
-                                    <tr class="bg1">
-                                        <td></td>
-                                    </tr>
-                                    <tr class="bg2">
-                                        <td style="min-width: 12vh"></td>
-                                    </tr>
-                                    <tr class="top">
-                                        <td class="name left" style="min-width: 10vh">X-Bar</td>
-                                        <td class="stat" style="min-width: 15vh"></td>
-                                    </tr>
-                                    <tr class="clone content">
-                                        <td class="name left">X-Bar</td>
-                                        <td class="stat xbar"></td>
-                                    </tr>
-                                    <tr class="clone content">
-                                        <td class="name left">CPK</td>
-                                        <td class="stat cpk"></td>
-                                    </tr>
-                                    <tr class="clone content">
-                                        <td class="name left">PPK</td>
-                                        <td class="stat ppk"></td>
-                                    </tr>
-                                    <tr class="clone content">
-                                        <td class="name left">UCL</td>
-                                        <td class="stat uclx"></td>
-                                    </tr>
-                                    <tr class="clone content">
-                                        <td class="name left">LCL</td>
-                                        <td class="stat lclx"></td>
-                                    </tr>
-                                </table>
-                            </div>
+        </div>
+        <div class="spc popup" hidden>
+            <div class="s1">
+                <div class="q1 dimNo"></div>
+                <div class="q2 dimReq gdt"></div>
+            </div>
+            <div class="s2">
+                <div class="q3">
+                    <div class="s4">
+                        <div class="q1">
+                            <svg id="spc_canvas1" viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
                         </div>
-                        <div class="s4">
-                            <div class="q1">
-                                <svg id="spc_canvas3" viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
-                            </div>
-                            <div class="q2">
-                                <svg id="spc_canvas4" viewBox="0 0 93.75 100" preserveAspectRatio="xMinYMin meet"></svg>
-                            </div>
-                            <div class="q4 rbar grid1 vertical">
-                                <table class="grid">
-                                    <colgroup>
-                                        <col style="width: 12vh">
-                                        <col style="width: 17vh">
-                                    </colgroup>
-                                    <thead></thead>
-                                    <tr class="bg1">
-                                        <td></td>
-                                    </tr>
-                                    <tr class="bg2">
-                                        <td style="min-width: 12vh"></td>
-                                    </tr>
-                                    <tr class="top">
-                                        <td class="name left" style="min-width: 10vh">R-Bar</td>
-                                        <td class="stat" style="min-width: 15vh"></td>
-                                    </tr>
-                                    <tr class="clone content">
-                                        <td class="name left">R-Bar</td>
-                                        <td class="stat rbar"></td>
-                                    </tr>
-                                    <tr class="clone content">
-                                        <td class="name left">UCL</td>
-                                        <td class="stat uclr"></td>
-                                    </tr>
-                                    <tr class="clone content">
-                                        <td class="name left">LCL</td>
-                                        <td class="stat lclr"></td>
-                                    </tr>
-                                </table>
-                            </div>
+                        <div class="q2">
+                            <svg id="spc_canvas2" viewBox="0 0 93.75 100" preserveAspectRatio="xMinYMin meet"></svg>
+                        </div>
+                        <div class="q4 xbar grid1 vertical">
+                            <table class="grid">
+                                <colgroup>
+                                    <col style="width: 12vh">
+                                    <col style="max-width: 17vh">
+                                </colgroup>
+                                <thead></thead>
+                                <tr class="bg1">
+                                    <td></td>
+                                </tr>
+                                <tr class="bg2">
+                                    <td style="min-width: 12vh"></td>
+                                </tr>
+                                <tr class="top">
+                                    <td class="name left" style="min-width: 10vh">X-Bar</td>
+                                    <td class="stat" style="min-width: 15vh"></td>
+                                </tr>
+                                <tr class="clone content">
+                                    <td class="name left">X-Bar</td>
+                                    <td class="stat xbar"></td>
+                                </tr>
+                                <tr class="clone content">
+                                    <td class="name left">CPK</td>
+                                    <td class="stat cpk"></td>
+                                </tr>
+                                <tr class="clone content">
+                                    <td class="name left">PPK</td>
+                                    <td class="stat ppk"></td>
+                                </tr>
+                                <tr class="clone content">
+                                    <td class="name left">UCL</td>
+                                    <td class="stat uclx"></td>
+                                </tr>
+                                <tr class="clone content">
+                                    <td class="name left">LCL</td>
+                                    <td class="stat lclx"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="s4">
+                        <div class="q1">
+                            <svg id="spc_canvas3" viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
+                        </div>
+                        <div class="q2">
+                            <svg id="spc_canvas4" viewBox="0 0 93.75 100" preserveAspectRatio="xMinYMin meet"></svg>
+                        </div>
+                        <div class="q4 rbar grid1 vertical">
+                            <table class="grid">
+                                <colgroup>
+                                    <col style="width: 12vh">
+                                    <col style="max-width: 17vh">
+                                </colgroup>
+                                <thead></thead>
+                                <tr class="bg1">
+                                    <td></td>
+                                </tr>
+                                <tr class="bg2">
+                                    <td style="min-width: 12vh"></td>
+                                </tr>
+                                <tr class="top">
+                                    <td class="name left" style="min-width: 10vh">R-Bar</td>
+                                    <td class="stat" style="min-width: 15vh"></td>
+                                </tr>
+                                <tr class="clone content">
+                                    <td class="name left">R-Bar</td>
+                                    <td class="stat rbar"></td>
+                                </tr>
+                                <tr class="clone content">
+                                    <td class="name left">UCL</td>
+                                    <td class="stat uclr"></td>
+                                </tr>
+                                <tr class="clone content">
+                                    <td class="name left">LCL</td>
+                                    <td class="stat lclr"></td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div id="prompt2" class="popup prompt">
-            <div id="seri_prompt2" class="grid1 vertical dohover">
-                <table class="grid">
-                    <tr class="bg1">
-                        <td></td>
-                    </tr>
-                    <tr class="bg2">
-                        <td style="min-width: 0"></td>
-                    </tr>
-                    <tr class="top">
-                        <td style="min-width: 30vh">S/N</td>
-                    </tr>
-                    <tr class="copy content">
-                        <td>VL0010001</td>
-                    </tr>
-                    <tr class="clone content">
-                        <td>VL0010001</td>
-                    </tr>
-                </table>
+        <div class="updater popup" hidden>
+            <div class="shout">Updating...</div>
+            <div class="title">v0.1.1 - July 6th, 2022</div>
+            <div class="notes">These are some release notes</div>
+            <div class="loading">
+                <div class="progress">
+                    <div>loading</div>
+                </div>
             </div>
         </div>
-        <div id="spc_tip">
-            <div class="q1">
-                <table class="t2">
-                    <tr class="r2">
-                        <td style="min-width: 15vh">Data:</td>
-                    </tr>
-                    <tr class="r2">
-                        <td>Sample:</td>
-                    </tr>
-                    <tr class="r2">
-                        <td>Status:</td>
-                    </tr>
-                    <tr class="r2">
-                        <td>Inspector:</td>
-                    </tr>
-                    <tr class="r2">
-                        <td>Timestamp:</td>
-                    </tr>
-                </table>
-            </div>
-            <div class="q2">
-                <table class="t2">
-                    <tr class="r1">
-                        <td class="stat data" style="min-width: 25vh"></td>
-                    </tr>
-                    <tr class="r1">
-                        <td class="stat sample"></td>
-                    </tr>
-                    <tr class="r1">
-                        <td class="stat status"></td>
-                    </tr>
-                    <tr class="r1">
-                        <td class="stat inspector"></td>
-                    </tr>
-                    <tr class="r1">
-                        <td class="stat timestamp"></td>
-                    </tr>
-                </table>
-            </div>
+        <div id="spc_tip" class="grid1 vertical" hidden>
+            <table class="grid">
+                <colgroup>
+                    <col style="width: 17vh">
+                    <col style="width: 33vh">
+                </colgroup>
+                <thead></thead>
+                <tr class="bg2">
+                    <td style="min-width: 17vh"></td>
+                </tr>
+                <tr class="clone content">
+                    <td class="left" style="min-width: 15vh">Data:</td>
+                    <td class="stat data" style="min-width: 25vh"></td>
+                </tr>
+                <tr class="clone content">
+                    <td class="left">Sample:</td>
+                    <td class="stat sample"></td>
+                </tr>
+                <tr class="clone content">
+                    <td class="left">Status:</td>
+                    <td class="stat status"></td>
+                </tr>
+                <tr class="clone content">
+                    <td class="left">Inspector:</td>
+                    <td class="stat inspector"></td>
+                </tr>
+                <tr class="clone content">
+                    <td class="left">Timestamp:</td>
+                    <td class="stat timestamp"></td>
+                </tr>
+            </table>
         </div>
     </div>
-    <div id="messages" class="alpha message" hidden>
+    <div class="alpha message" hidden>
         <div class="popup message">
 
         </div>

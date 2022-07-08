@@ -1,0 +1,16 @@
+.popup.updater {
+    width: 50vh;
+    padding: 2vh;
+    display: flex;
+    flex-direction: column;
+    gap: .75vh;
+}
+.popup.updater > div {
+    font-size: 3vh;
+}
+.popup.updater .notes {
+    font-size: 2.5vh;
+}
+.popup.updater .loading {
+    height: 4vh;
+}
