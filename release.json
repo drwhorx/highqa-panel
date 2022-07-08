@@ -5,7 +5,7 @@
     "platforms": {
         "windows-x86_64": {
             "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVGQjk5ODc1MjgzNjk5RjcKUldUM21UWW9kWmk1WDN6VHA0b2E1VE04dXhvNzBRdzZVK2N1Y0JUNys0RGhWVjl4dnpMZFZIaFUK",
-            "url": "https://github.com/drwhorx/highqa-panel/releases/download/v0.1.2/High.QA.Panel_0.1.2_x64_en-US.msi.zip"
+            "url": "https://github.com/drwhorx/highqa-panel/releases/download/v0.1.4/High.QA.Panel_0.1.4_x64_en-US.msi.zip"
         }
     }
 }
