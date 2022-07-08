@@ -6,7 +6,8 @@
     "tauri": "tauri",
     "dev": "tauri dev",
     "key": "tauri signer generate -w ./highqapanel.key",
-    "verbose": "tauri build --verbose"
+    "verbose": "tauri build --verbose",
+    "debug": "tauri build --debug --target i686-pc-windows-msvc"
   },
   "dependencies": {
     "express": "^4.18.1"
