@@ -12,8 +12,6 @@
 }
 .popup {
     position: relative;
-    background-color: #555555;
-    box-shadow: 0 0 4vh #000000;
     border-radius: 1vh;
     margin: auto auto;
     overflow-y: auto;
@@ -41,5 +39,5 @@
     height: 72vh;
 }
 body > .loading .progress {
-    top: 5.5vh;
+    top: 4.25vh;
 }

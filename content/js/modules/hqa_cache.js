@@ -33,6 +33,9 @@ const tree = (queries, final) => {
 
 const filter = (source, arr) => arr.reduce((obj, key) => ({ ...obj, [key]: source[key] }), {});
 
+const groups = (length, size) =>
+    Array.from({ length: mathjs.ceil(length / size) }, (_, i) => [i * size, i * size + size]);
+
 let get_jobs = {
     run: async () => {
         return (await API("jobs/list").pages())["Jobs"];
@@ -70,7 +73,7 @@ let load_jobs = {
             part.customer = model.company[res["CustomerGUID"]];
         }
         for (let res of get_jobs) {
-            if (!model.part[res["PartGUID"]] ||  res["Status"] != 1) continue;
+            if (!model.part[res["PartGUID"]] || res["Status"] != 1) continue;
             let job = model.job[res["GUID"]] = models.job(res);
             let part = job.part = model.part[res["PartGUID"]];
             part.job = job;
@@ -125,34 +128,45 @@ let get_drawings = {
 }
 
 let load_files = {
-    parents: { get_drawings },
+    parents: { get_drawings, load_ops },
     run: async ({ get_drawings }, valid) => {
+        let pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "./js/lib/pdf.worker.js";
+
         let guids = [];
         for (let res of get_drawings) {
             if (!guids.includes(res["DrawingFile"]))
                 guids.push(res["DrawingFile"]);
         }
-        let files = {};
-        await Promise.all(guids.map(async res => {
+        model.file = {};
+        await Promise.all(guids.map(async guid => {
             let query1 = API("filestorage/token");
             let query2 = API("filestorage/download");
-            query1.req["GUID"] = res;
+            query1.req["GUID"] = guid;
             query2.req["Token"] = (await query1.send())["Token"];
             if (!valid()) return;
-            files[res] = await query2.pdf();
+            let res = await query2.pdf();
+            if (!valid()) return;
+
+            let file = model.file[guid] = models.file(res);
+            let url = window.URL.createObjectURL(file.get);
+            file.pdf = await pdfjsLib.getDocument({ url, maxImageSize: 2147500037 }).promise;
         }))
         if (!valid()) return;
-        
-        model.file = {};
+
         model.drawing = {};
-        for (let file in files) {
-            model.file[file] = models.file(files[file]);
-        }
         for (let res of get_drawings) {
             let drawing = model.drawing[res["GUID"]] = models.drawing(res);
-            let file = model.file[res["DrawingFile"]] = models.file(files[res["DrawingFile"]]);
+            let file = model.file[res["DrawingFile"]];
             drawing.file = file;
             file.drawings.push(drawing);
+            
+            let canvas = $("<canvas>")[0];
+            await drawpdf(file.pdf, drawing.get["PdfPageNo"], canvas);
+            drawing.width = canvas.width;
+            drawing.height = canvas.height;
+            drawing.png = canvas.toDataURL("image/png");
+            delete canvas;
         }
         raw.files = Object.values(model.file);
         return raw.drawings = Object.values(model.drawing);
@@ -161,7 +175,7 @@ let load_files = {
 let dim_ops = {
     parents: { get_dims, get_ops },
     run: async ({ get_dims }, valid) => {
-        await Promise.all(get_dims.map(async dim => {
+        await all(get_dims.map(async dim => {
             let query = API("procedures/list");
             query.req["DimGUID"] = dim["GUID"];
             let op = (await query.send())["Procedures"][0]
@@ -187,30 +201,43 @@ let get_samples = {
     },
 }
 let get_holders = {
-    parents: { get_samples },
+    parents: { get_samples, load_ops },
     run: async ({ get_samples }, valid) => {
-        var size = 5;
-        let length = mathjs.ceil(get_samples.length / size);
-        let groups = Array.from({ length }, (_, i) => get_samples.slice(i * size, i * size + size));
-        let res = await Promise.all(groups.map(async group => {
-            if (group.length == 0) return [];
+        let samples = get_samples
+            .filter(e => e["Results"] > 0)
+            .sort((a, b) => b["Results"] - a["Results"])
+        let res = await all(samples.map(async sample => {
             let query = API("placeholders/list");
-            query.req["SampleGUIDs"] = group.map(res => res["GUID"]).join(",");
-            return (await query.pages())["Placeholders"];
+            query.req["SampleGUIDs"] = sample["GUID"];
+            return (await query.pages(valid))["Placeholders"];
         }));
         return res.flat();
     },
 }
 let get_results = {
-    run: async (_, valid) => {
-        let query = API("results/list");
-        query.req["JobGUID"] = user.job.get["GUID"];
-        for (let i = 1; i <= 4; i++) {
-            query.req["Status"] = i;
-            await query.pages(valid);
-        }
-        return query.res["Results"];
+    parents: { get_samples },
+    run: async ({ get_samples }, valid) => {
+        let samples = get_samples
+            .filter(e => e["Results"] > 0)
+            .sort((a, b) => b["Results"] - a["Results"])
+        let nums = [1, 2, 3, 4];
+        let res = await all(samples.map(async sample => {
+            return await all(nums.map(async num => {
+                let query = API("results/list");
+                query.req["Status"] = num;
+                query.req["SampleGUID"] = sample["GUID"];
+                return (await query.pages(valid))["Results"];
+            }));
+        }));
+        return res.flat(2);
     },
+}
+let get_ncrs = {
+    run: async (_, valid) => {
+        let query = API("ncr/list");
+        query.req["JobGUID"] = user.job.get["GUID"];
+        return (await query.pages(valid))["NCRs"];
+    }
 }
 
 const stage2 = tree({
@@ -222,17 +249,22 @@ const stage2 = tree({
     get_lots,
     get_samples,
     get_holders,
-    get_results
+    get_results,
+    get_ncrs
 }, load_ops);
+
+let load_results = {
+    
+}
 
 let load_job = {
     parents: {
         get_mfgs, get_dims, dim_ops,
-        get_lots, get_samples, get_holders, get_results, get_contacts
+        get_lots, get_samples, get_holders, get_results, get_ncrs, get_contacts
     },
     run: async ({
         get_mfgs, get_dims, dim_ops,
-        get_lots, get_samples, get_holders, get_results, get_contacts
+        get_lots, get_samples, get_holders, get_results, get_ncrs, get_contacts
     }) => {
         model.contact = {};
         model.mfg = {};
@@ -241,6 +273,7 @@ let load_job = {
         model.sample = {};
         model.holder = {};
         model.result = {};
+        model.ncr = {};
 
         for (let op of raw.ops) {
             op.dims = [];
@@ -298,6 +331,10 @@ let load_job = {
             lot.holders.push(holder);
         }
 
+        for (let res of get_ncrs) {
+            model.ncr[res["GUID"]] = models.ncr(res);
+        }
+
         for (let res of get_results) {
             let result = model.result[res["GUID"]] = models.result(res);
             let sample = result.sample = model.sample[res["SampleGUID"]];
@@ -305,18 +342,27 @@ let load_job = {
             let mfg = result.mfg = dim.mfg;
             let lot = result.lot = sample.lot;
             result.inspector = model.contact[res["MeasuredByGUID"]];
+            let serial = model.ncr[res["ResNo"]];
+            if (serial) {
+                result.serial = serial;
+                serial.result = result;
+                result.inspector = model.contact[serial.get["CreatedByGUID"]];
+                result.get["InspectedDate"] = serial.get["Number"];
+            }
             sample.results.push(result);
             dim.results.push(result);
             mfg.results.push(result);
             lot.results.push(result);
         }
 
+        raw.contacts = Object.values(model.contact);
         raw.mfgs = Object.values(model.mfg);
         raw.dims = Object.values(model.dim);
         raw.lots = Object.values(model.lot);
         raw.samples = Object.values(model.sample);
         raw.holders = Object.values(model.holder);
         raw.results = Object.values(model.result);
+        raw.serials = Object.values(model.serial);
 
         return raw;
     }

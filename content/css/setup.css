@@ -30,3 +30,20 @@ div {
     font-family: 'Y145-2018';
     font-size: 2.75vh;
 }
+
+.clicky {
+    background-color: #8872e9;
+    box-shadow: 0 0 3vh #1D1D1D;
+    border-radius: 1vh;
+    transition: transform .1s, background-color .1s;
+    cursor: pointer;
+    text-align: center;
+}
+.clicky:hover {
+    transform: scale(1.05);
+    background-color: #a695f0;
+}
+.clicky:active {
+    transform: scale(0.95);
+    background-color: #a695f0;
+}

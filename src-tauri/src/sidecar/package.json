@@ -1,0 +1,14 @@
+{
+  "name": "sidecar",
+  "version": "1.0.0",
+  "bin": "./index.js",
+  "pkg": {
+    "assets": [
+      "./index.js"
+    ]
+  },
+  "scripts": {
+    "package": "pkg package.json --output ../../binaries/sidecar && node ./move-binary.js"
+  },
+  "devDependencies": {}
+}

@@ -10,10 +10,10 @@ class POST {
         return this;
     }
     async send() {
-        let success, bearer;
+        let success;
         while (!success) {
             if (this.path != "auth/token")
-                document.bearer = await this.bearer;
+                document.bearer = await this.bearer();
             this.res = await $.ajax({
                 url: route + this.path,
                 type: 'POST',
@@ -31,9 +31,9 @@ class POST {
         }
     }
     async pdf() {
-        let success, bearer;
+        let success;
         while (!success) {
-            document.bearer = await this.bearer;
+            document.bearer = await this.bearer();
             this.res = await $.ajax({
                 url: route + this.path,
                 type: 'POST',
@@ -70,17 +70,15 @@ class POST {
         this.req["Page"] = ""
         return this.res;
     }
-    get bearer() {
-        return (async () => {
-            if (!document.bearer) {
-                let post = new POST("auth/token", {
-                    "Username": "APIFULL",
-                    "Password": "APIFULL"
-                });
-                document.bearer = "Bearer " + (await post.send())["AccessToken"];
-            }
-            return document.bearer;
-        })();
+    async bearer() {
+        if (!document.bearer) {
+            let post = new POST("auth/token", {
+                "Username": "APIFULL",
+                "Password": "APIFULL"
+            });
+            document.bearer = "Bearer " + (await post.send())["AccessToken"];
+        }
+        return document.bearer;
     }
 }
 
@@ -130,6 +128,22 @@ const APIreq = {
         "Page": "",
         "PageSize": 0
     },
+    "samples/set": {
+        "AddPlaceholders": false,
+        "InputSample": {
+            "GUID": "",
+            "PartGUID": "",
+            "LotGUID": "",
+            "JobGUID": "",
+            "SerialNumber": "",
+            "CavityNumber": 0,
+            "MachineNumber": "",
+            "FixtureNumber": "",
+            "Status": 0,
+            "ERPID": "",
+            "BarcodeID": ""
+        }
+    },
     "dims/list": {
         "PartGUID": "",
         "OperationGUIDs": "",
@@ -154,6 +168,38 @@ const APIreq = {
         "SampleGUID": "",
         "IgnoreInvalidLines": true,
         "InputResults": []
+    },
+    "ncr/list": {
+        "JobGUID": "",
+        "LotGUID": "",
+        "Status": 0,
+        "CreationDateFrom": null,
+        "CreationDateTo": null,
+        "ResponseDateFrom": null,
+        "ResponseDateTo": null,
+        "Number": "",
+        "SampleGUIDs": "",
+        "NCRGUIDs": "",
+        "Page": "",
+        "PageSize": 0
+    },
+    "ncr/set": {
+        "InputNCR": {
+            "GUID": "",
+            "JobGUID": "",
+            "LotGUID": "",
+            "Number": "",
+            "Status": 0,
+            "CreationDate": null,
+            "CreatedByGUID": "",
+            "ResponseDate": null,
+            "AssignedToGUID": "",
+            "WorkCellGUID": "",
+            "InspCenterGUID": "",
+            "BarcodeID": "",
+            "ERPID": "",
+            "Comments": ""
+        }
     },
     "procedures/list": {
         "Code": "",

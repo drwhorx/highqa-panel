@@ -1,70 +1,39 @@
-const test2 = () => {
-    $("#planner .clone").remove();
-    for (let i = 0; i < 20; i++) {
-        let row = $("#planner tr.top");
-        let cell = dupe(row.find(".sample.copy"));
-        $(cell).text(i + 1);
-        row.append(cell);
-    }
-    let headers = $("#planner .sample.clone");
+const test = async () => {
+    let job = user.job;
+    let part = job.part;
+    let fpi = job.lots.fpi;
+    let mfg = job.lots.mfg;
+    let dims = part.mfgs.mfg.dims;
+    let set = API("samples/set");
 
-    for (let i = 0; i < 30; i++) {
-        let row = dupe("#planner tr.copy")
-        let done = mathjs.random() < .4;
-        let samples = samplize(mathjs.floor(mathjs.random() * 20 + 1), 20)
-        for (let j = 0; j < 20; j++) {
-            let cell = dupe(row.find(".plan.copy"));
-            if (samples.includes(j)) {
-                if (done) cell.addClass(mathjs.random() < .1 ? "fail" : "done");
-                else cell.addClass("insp");
-            }
-            cell.prop("tbl_dim", row.find(".left"));
-            cell.prop("tbl_samp", headers[j]);
-            row.append(cell);
-        }
-        $("#planner").append(row);
+    samples = fpi.samples.map(e => e.get["GUID"]);
+    for (let dim of dims) {
+        let create = API("placeholders/create");
+        create.req["DimGUID"] = dim.get["GUID"];
+        create.req["SampleGUIDs"] = samples.join(",")
+        await create.send();
     }
+
+    samples = mfg.samples.map(e => e.get)
+        .sort((a, b) => a["SerialNumber"].slice(2) - b["SerialNumber"].slice(2));
+    for (let dim of dims) {
+        let qty = sample_qty(dim.get["TolClass"], samples.length) || parseInt(dim.get["TolClass"]);
+        if (!qty) return;
+        let plan = samplize(qty, samples.length).map(e => samples[e]["GUID"]);
+        let create = API("placeholders/create");
+        create.req["DimGUID"] = dim.get["GUID"];
+        create.req["SampleGUIDs"] = plan.join(",");
+        await create.send();
+    }
+    console.log("done");
 }
 
-const test5 = async () => {
-    /*
-    var y_data = [1.3644,1.3641,1.3638,1.3646,1.3646,1.364,1.3642,1.3642,1.3641,1.3646,1.3646,1.3647,1.3648,1.3647,1.3642,1.3646,1.3642,1.3646,1.3643,1.3645,1.3641,1.3641,1.3646,1.3644,1.3641,1.3641,1.3641,1.3643]
-    length = y_data.length
-    var x_data = Array.from({ length }, (_, i) => i + 1);
-    draw_spc(x_data, y_data, 1.363, 1.365);
-    */
-
-    let length = mathjs.random() * 40 + 10;
-    var x_data = Array.from({ length }, (_, i) => i + 1);
-    var usl = mathjs.random() * 2 + 1.001;
-    var lsl = usl - .002;
-    var y_data = Array.from({ length }, (_, i) => usl + 0.0005 - mathjs.random() * 0.003);
-
-    draw_spc(x_data, y_data, usl, lsl);
-    //draw_hist(x_data, y_data, usl, lsl);
-}
-
-const drawpdf = async (drawing, pageNo, canvas) => {
-    var pdfjsLib = window['pdfjs-dist/build/pdf'];
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "./js/lib/pdf.worker.js";
- 
-    let url = window.URL.createObjectURL(drawing.get);
-    console.log(url)
-    let pdf = await pdfjsLib.getDocument({ url, maxImageSize: 2147500037 }).promise;
-    let page = await pdf.getPage(pageNo);
-    let context = canvas.getContext('2d');
-
-    try {
-        let viewport = page.getViewport({ scale: 1 });
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-
-        return await page.render({
-            canvasContext: context,
-            viewport: viewport
-        }).promise;
-    } catch (err) {
-    }
+const test2 = async () => {
+    let unzip = new JSZip();
+    let parse = new DOMParser();
+    let zip = await unzip.loadAsync($("#debug1").prop("files")[0]);
+    let dims = parse.parseFromString(await folder.files["Dims.xml"].async("text"), "text/xml");
+    let part = parse.parseFromString(await folder.files["Parts.xml"].async("text"), "text/xml");
 }
 
 $.easing.easeBounce = d3.easeBounce;
@@ -79,6 +48,53 @@ $.fn.extend({
         return this.prop("hidden", true)
     }
 })
+
+const test3 = async () => {
+    ui.input.scale = 1;
+    ui.input.drawings.$(".clone").remove();
+    let drawings = raw.drawings.sort((a, b) =>
+        a.get["Title"].localeCompare(b.get["Title"])
+        || a.get["PdfPageNo"] - b.get["PdfPageNo"]);
+    for (let drawing of drawings) {
+        let dupe1 = ui.input.drawings.copy.dupe();
+        dupe1.$("img").attr("src", drawing.png);
+        for (let dim of user.op.dims) {
+            let dupe2 = dupe1.$(".copy.dim").dupe();
+            dupe2.prop("model", dim);
+            let coords = dim.get["ShapeCenter"].split(",");
+            let size = dim.get["ShapePoints"].split(",");
+            let factor = 58.5 / drawing.height;
+            dupe2.css({
+                left: (coords[0] * factor + 3.9) + "vh",
+                top: (coords[1] * factor + 3.9) + "vh",
+                width: (size[0] * factor) + "vh",
+                height: (size[1] * factor) + "vh"
+            })
+            dupe1.$(".dims").append(dupe2)
+        }
+        ui.input.drawings.append(dupe1);
+    }
+    ui.prompts.open("input");
+}
+
+
+const drawpdf = async (pdf, pageNo, canvas) => {
+    let page = await pdf.getPage(pageNo);
+    let context = canvas.getContext('2d');
+
+    try {
+        let viewport = page.getViewport({ scale: 4 / 3 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        return await page.render({
+            canvasContext: context,
+            viewport: viewport
+        }).promise;
+    } catch (err) {
+    }
+}
+
 
 /*
 $(window).on("load", () => {

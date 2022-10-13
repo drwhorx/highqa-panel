@@ -17,6 +17,7 @@ const raw = {
     samples: [],
     holders: [],
     results: [],
+    serials: []
 }
 
 const model = {
@@ -33,7 +34,8 @@ const model = {
     lot: {},
     sample: {},
     holder: {},
-    result: {}
+    result: {},
+    serial: {}
 }
 
 const models = {
@@ -133,5 +135,9 @@ const models = {
         sample: {},
 
         inspector: {}
+    }),
+    ncr: (init) => ({
+        get: init,
+        result: {}
     })
 }

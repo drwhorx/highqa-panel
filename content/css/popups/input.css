@@ -1,0 +1,239 @@
+.popup.input {
+    min-width: 150vh;
+    padding: 2.5vh 4vh;
+    gap: 2.5vh;
+}
+
+.popup.input .loading {
+    height: 4vh;
+    margin: auto;
+}
+
+.popup.input .drawings1 {
+    height: 80vh;
+    box-shadow: 0 0 4vh #000000;
+}
+
+.popup.input .drawings2 {
+    height: 75vh;
+    border-radius: 1vh;
+    overflow: hidden;
+    margin: auto;
+}
+
+.popup.input .controls {
+    height: 12.5vh;
+    justify-content: space-between;
+    box-shadow: 0 0 4vh #000000;
+}
+
+.popup.input .drawings {
+    height: 75vh;
+    width: 145vh;
+    box-shadow: 0 0 2vh #101010 inset;
+    border-radius: 1vh;
+    overflow: scroll hidden;
+    scroll-snap-type: x mandatory;
+}
+
+.popup.input .drawing {
+    height: 67vh;
+    margin: 3vh;
+    scroll-snap-align: center;
+    min-width: fit-content;
+    position: relative;
+    overflow: visible;
+    display: flex;
+    align-items: center
+}
+.popup.input .drawing .loading {
+    height: 0;
+    margin: 0 auto;
+}
+
+.popup.input .drawing .clip {
+    height: 67vh;
+    overflow: hidden;
+    box-shadow: 0 0 2vh #101010;
+    border-radius: 1vh;
+}
+
+.popup.input .drawing .scroll {
+    height: 67vh;
+    width: auto;
+    overflow: auto;
+    position: relative;
+    background-color: #777777;
+}
+
+.popup.input .drawing img {
+    height: 58.5vh;
+    padding: 4vh;
+    border-radius: 1vh;
+    transform-origin: top left;
+    transition: transform .3s;
+}
+
+.popup.input .drawing .dims {
+    height: 59vh;
+    padding: 4vh;
+    position: absolute;
+    border-radius: 1vh;
+    transform-origin: top left;
+    top: 0;
+    left: 0;
+    transition: transform .3s;
+}
+
+.popup.input .drawing .dim {
+    border: 0.2vh solid;
+    cursor: pointer;
+    position: absolute;
+    transition: transform .1s, background-color .1s;
+    border-radius: .4vh;
+    display: flex;
+}
+
+.popup.input .drawing .balloon {
+    position: relative;
+    height: 2vh;
+    width: 2vh;
+    left: -2.5vh;
+    border: solid .2vh #f33f3c;
+    border-radius: 1.1vh;
+    color: black;
+    vertical-align: center;
+    line-height: 2vh;
+    overflow: hidden;
+    background-color: white;
+}
+
+.popup.input .drawing .dim.fail {
+    border-color: #f33f3c;
+    background-color: #dc54518c;
+}
+.popup.input .drawing .dim.fail:hover {
+    transform: scale(1.05);
+    background-color: #ef8c8a8c;
+}
+.popup.input .drawing .dim.done {
+    border-color: #36ef40;
+    background-color: #59d45f8c;
+}
+.popup.input .drawing .dim.done:hover {
+    transform: scale(1.05);
+    background-color: #93f1988c;
+}
+.popup.input .drawing .dim.insp {
+    border-color: #ffda06;
+    background-color: #f8de498c;
+}
+.popup.input .drawing .dim.insp:hover {
+    transform: scale(1.05);
+    background-color: #f5e4838c;
+}
+
+.popup.input .buttons {
+    align-items: center;
+}
+
+.popup.input .zoomin,
+.popup.input .zoomfit,
+.popup.input .zoomout,
+.popup.input .serialize {
+    width: 10vh;
+    height: 8vh;
+    font-size: 3vh;
+    line-height: 8vh;
+    text-align: center;
+    margin: 0 1vh;
+}
+
+.popup.input .serialize {
+    width: 20vh;
+}
+
+.popup.input .info1,
+.popup.input .info2 {
+    justify-content: center;
+    width: 50vh;
+    align-items: center;
+    gap: 1vh;
+}
+
+.popup.input .jobNo,
+.popup.input .opNo,
+.popup.input .sampleNo,
+.popup.input .loginName {
+    font-size: 3vh;
+}
+
+.popup.input .data {
+    width: 0;
+    gap: 1.5vh;
+    align-items: center;
+    padding: 2vh 0;
+    opacity: 0;
+}
+.popup.input .data .display {
+    line-height: 5vh;
+    height: 5vh;
+    width: 19.2vh;
+    font-size: 3vh;
+    text-align: center;
+    background-color: #444;
+    border: #333 solid .4vh;
+    overflow: auto;
+    border-radius: 1vh;
+}
+.popup.input .data .row {
+    width: 20vh;
+    gap: 1vh;
+}
+.popup.input .data .number {
+    font-size: 4vh;
+    min-width: 6vh;
+    max-width: 9.5vh;
+    flex-grow: 1;
+    height: 6vh;
+    text-align: center;
+    line-height: 6vh;
+    border-radius: 1vh;
+    box-shadow: 0 0 1vh #1D1D1D;
+}
+.popup.input .data .number:hover {
+    transform: scale(1.05);
+}
+.popup.input .data .number:active {
+    transform: scale(0.95);
+}
+.popup.input .data .accept,
+.popup.input .data .cancel,
+.popup.input .data .clear,
+.popup.input .data .more {
+    font-size: 3vh;
+    height: 5vh;
+    line-height: 5vh;
+    width: 20vh;
+    text-align: center;
+    box-shadow: 0 0 1vh #1D1D1D;
+}
+.popup.input .data .accept {
+    background-color: #59d45f;
+}
+.popup.input .data .accept.invalid {
+    background-color: #777777;
+    color: #444444;
+}
+.popup.input .data .accept.invalid:hover {
+    background-color: #888888;
+}
+.popup.input .data .accept:hover {
+    background-color: #93f198;
+}
+.popup.input .data .cancel {
+    background-color: #dc5451;
+}
+.popup.input .data .cancel:hover {
+    background-color: #ef8c8a;
+}

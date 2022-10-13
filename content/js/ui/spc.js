@@ -4,19 +4,31 @@ const spc = {
     d3: 0.8525122415123741,
     D3: 0,
     D4: 3.2665579081190517,
-    data: (arr, usl, lsl) => {
+    data: (arr, dim) => {
         let out = {
             x_bar: mathjs.mean(arr),
             x_sig: mathjs.std(arr),
-            usl: usl,
-            lsl: lsl
+            usl: dim["UpperTol"],
+            lsl: dim["LowerTol"]
         }
         out.mr = arr.map((e, i) => mathjs.abs(e - arr[i - 1])).splice(1);
         out.r_bar = mathjs.mean(out.mr);
         out.r_sig = mathjs.std(out.mr);
         out.s_hat = out.r_bar / spc.d2;
-        out.cpk = mathjs.min(usl - out.x_bar, out.x_bar - lsl) / (3 * out.s_hat);
-        out.ppk = mathjs.min(usl - out.x_bar, out.x_bar - lsl) / (3 * out.x_sig);
+        out.zmin = {
+            /*
+            0: dim["Nominal"] - out.x_bar, // N/A
+            3: dim["Nominal"] - out.x_bar, // Basic
+            4: dim["Nominal"] - out.x_bar, // Reference
+            */
+            1: mathjs.min(dim["UpperTol"] - out.x_bar, out.x_bar - dim["LowerTol"]) + dim["Nominal"], // Tolerance
+            2: mathjs.min(dim["UpperTol"] - out.x_bar, out.x_bar - dim["LowerTol"]), // As Limit
+            5: out.x_bar - dim["LowerTol"], // MIN
+            6: dim["UpperTol"] - out.x_bar, // MAX
+        }[dim["TolType"]];
+
+        out.cpk = out.zmin / (3 * out.s_hat);
+        out.ppk = out.zmin / (3 * out.x_sig);
         out.uclx = out.x_bar + spc.e2 * out.r_bar;
         out.lclx = out.x_bar - spc.e2 * out.r_bar;
         out.uclr = spc.D4 * out.r_bar;
@@ -27,15 +39,36 @@ const spc = {
         return (1 / (s * mathjs.sqrt(2 * mathjs.pi))) * mathjs.exp((-1 / 2) * mathjs.pow((x - u) / s, 2))
     }
 }
+let colors = [
+    "white", "white", "#ff0f0f", "#ff0f0f", "#7CC2FF"
+]
+let dashes = [
+    0, 0, 5, 5, 0
+];
+
+const draw_data = async (dim, results) => {
+    if (dim["LowerTol"] == dim["Nominal"] == 0) dim["TolType"] = 6;
+
+}
+
+const draw_xplot = async (canvas, data) => {
+    let svg = d3.select(canvas);
+    let out = {
+        
+    }
+    out.zmin = {
+        1: mathjs.min(dim["UpperTol"] - out.x_bar, out.x_bar - dim["LowerTol"]) + dim["Nominal"], // Tolerance
+        2: mathjs.min(dim["UpperTol"] - out.x_bar, out.x_bar - dim["LowerTol"]), // As Limit
+        5: out.x_bar - dim["LowerTol"], // MIN
+        6: dim["UpperTol"] - out.x_bar, // MAX
+    }[dim["TolType"]];
+
+}
+
 
 const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
     let dim = results[0].dim;
-    let colors = [
-        "white", "white", "#ff0f0f", "#ff0f0f", "#7CC2FF"
-    ]
-    let dashes = [
-        0, 0, 5, 5, 0
-    ];
+
     d3.selectAll($([$(x_chart)[0], $(r_chart)[0], $(x_hist)[0], $(r_hist)[0]])).selectAll("*").remove();
     (async () => {
         let charts = d3.selectAll($([$(x_chart)[0], $(r_chart)[0]]));
@@ -164,8 +197,9 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                         $("#spc_tip").css("bottom", "");
                     }
 
-                    let result = d3.select(point).data()[0].model;
-                    $("#spc_tip .data").text(result.get["Data"].toFixed(4));
+                    let data = d3.select(point).data()[0];
+                    let result = data.model;
+                    $("#spc_tip .data").text(data.y.toFixed(4));
                     $("#spc_tip .sample").text(result.sample.get["SerialNumber"]);
                     $("#spc_tip .status").text(result.get["StatusText"]);
                     $("#spc_tip .inspector").text(result.inspector.get["FirstName"] + " " + result.inspector.get["LastName"]);
@@ -295,17 +329,17 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                     let plotX = x.invert(svgX);
                     let plotY = y.invert(svgY);
                     let circ = chart.property("circ");
-    
+
                     circ.style("fill", "#7CC2FF");
                     rect.style("fill", "#41a6ff");
-    
+
                     let bisect = d3.bisector((d, x) => (d.x1 + d.x0) / 2 - x).center;
                     let index = bisect(bins, plotY);
                     let points = bins[index].map(d0 => circ.nodes()[d0.x - (is_r ? 2 : 1)]);
                     d3.selectAll(points).style("fill", "white");
                     let rects = rect.nodes()[index];
                     d3.select(rects).style("fill", "#7CC2FF");
-    
+
                     line.attr("y1", svgY);
                     line.attr("y2", svgY);
                     line.style("opacity", 1);

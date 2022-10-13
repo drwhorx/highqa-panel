@@ -1,7 +1,6 @@
 {
-    "version": "v0.1.4",
-    "notes": "This is a test update",
-    "pub_date": "2022-07-08T13:01:21Z",
-    "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUM21UWW9kWmk1WDRhenRKREZVYml4QVhnTmdZV2pwVTJRWll2eEJscjlIVEliNmZpU0pjdFFxa0hmM2l6VjlNYTA4b3E2Zk5sZmNDeGNqREtJSUtXZGxwRVFUK3VVNXdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjU3NzE4NDQyCWZpbGU6SGlnaCBRQSBQYW5lbF8wLjEuNF94NjRfZW4tVVMubXNpLnppcApuWVNOM3BMTGNleTVEc0o1TDNGWkpBVUEzQnNBWWlQMjZ0NzNuZ0M4dWVZUDFlYTdFQVpHek9aTGdmT2I3aTJYZ0VKQ1huMmI3VFRUZzU3bHVzM2hCZz09Cg==",
-    "url": "https://github.com/drwhorx/highqa-panel/releases/download/v0.1.4/High.QA.Panel_0.1.4_x64_en-US.msi.zip"
+    "version": "0.1.4",
+    "body": "This is the latest Beta release; for any bugs or suggestions reach out to Amon",
+    "date": "2022-07-08T13:01:21Z",
+    "path": "\\\\DG-DC01\\User Share\\Amon Green\\HIGH QA PANEL\\High QA Panel_0.1.4_x64_en-US.msi"
 }

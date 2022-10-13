@@ -1,59 +1,61 @@
-#planner1 {
+.planner1 {
     position: relative;
     overflow: hidden;
+    border-radius: 1vh;
 }
-#planner1.pop {
+.planner1.pop {
     opacity: 1;
     transform: translateY(0);
 }
-#planner2 {
+.planner2 {
     box-shadow: 0 0 3vh #1D1D1D;
     border-radius: 1vh;
     width: 115vh;
-    height: 82.5vh;
+    height: 85vh;
 }
-#planner {
+.planner {
     table-layout: auto;
 }
-#planner .sample,
-#planner .plan {
+.planner .sample,
+.planner .plan {
     text-align: center;
     padding: 0;
 }
-#planner .dim,
-#planner .plan,
-#planner .sample {
+.planner .dim,
+.planner .plan,
+.planner .sample {
     transition: background-color .4s;
 }
 
-#planner .content:hover .left,
-#planner .plan:hover,
-#planner .sample:hover,
-#planner .hover {
+.planner .content:hover .left,
+.planner .plan:hover,
+.planner .sample:hover,
+.planner .hover {
     background-color: #777777;
     transition: background-color .2s;
 }
 
-#planner .plan {
+.planner .plan {
     background-color: #555555;
+    cursor: pointer;
     height: 4.5vh;
 }
-#planner .plan.fail {
+.planner .plan.fail {
     background-color: #dc5451;
 }
-#planner .plan.fail:hover {
+.planner .plan.fail:hover {
     background-color: #ef8c8a;
 }
-#planner .plan.done {
+.planner .plan.done {
     background-color: #59d45f;
 }
-#planner .plan.done:hover {
+.planner .plan.done:hover {
     background-color: #93f198;
 }
-#planner .plan.insp {
+.planner .plan.insp {
     background-color: #f8de49;
 }
-#planner .plan.insp:hover {
+.planner .plan.insp:hover {
     background-color: #f5e483;
 }
 
