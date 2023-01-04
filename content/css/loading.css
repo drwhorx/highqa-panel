@@ -28,17 +28,16 @@
     left: 0;
     bottom: 0;
     right: 0;
-    background-image: linear-gradient(-45deg,
-            #ffffff30 20%,
-            transparent 20%,
-            transparent 50%,
-            #ffffff30 50%,
-            #ffffff30 70%,
-            transparent 70%,
-            transparent 100%);
-    z-index: 1;
-    background-size: 8vh 8vh;
     animation: move 1s linear infinite;
+    background-image: linear-gradient(-45deg,
+        transparent 0,
+        transparent 32.5%,
+        #ffffff30 32.5%,
+        #ffffff30 67.5%,
+        transparent 67.5%,
+        transparent 100%);
+    background-size: 8vh;
+    z-index: 1;
     border-radius: 1vh;
     overflow: hidden;
 }

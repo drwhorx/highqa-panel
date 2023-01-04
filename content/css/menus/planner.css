@@ -1,49 +1,37 @@
-.planner1 {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1vh;
-}
-.planner1.pop {
-    opacity: 1;
-    transform: translateY(0);
-}
-.planner2 {
-    box-shadow: 0 0 3vh #1D1D1D;
-    border-radius: 1vh;
-    width: 115vh;
-    height: 85vh;
-}
 .planner {
-    table-layout: auto;
+    width: 115vh;
 }
-.planner .sample,
-.planner .plan {
-    text-align: center;
+
+.planner .cell.sample,
+.planner .cell.plan {
+    justify-content: center;
     padding: 0;
 }
-.planner .dim,
-.planner .plan,
-.planner .sample {
+.planner .cell.dim,
+.planner .cell.plan,
+.planner .cell.sample {
     transition: background-color .4s;
+    cursor: pointer;
 }
 
 .planner .content:hover .left,
-.planner .plan:hover,
-.planner .sample:hover,
-.planner .hover {
+.planner .cell.plan:hover,
+.planner .cell.sample:hover,
+.planner .cell.sample.hover {
     background-color: #777777;
     transition: background-color .2s;
 }
 
-.planner .plan {
+.planner .cell.plan {
     background-color: #555555;
-    cursor: pointer;
     height: 4.5vh;
 }
-.planner .plan.fail {
+.planner .plan.fail,
+.planner .sample.fail {
     background-color: #dc5451;
 }
-.planner .plan.fail:hover {
+.planner .plan.fail:hover,
+.planner .sample.fail {
     background-color: #ef8c8a;
 }
 .planner .plan.done {
@@ -59,7 +47,7 @@
     background-color: #f5e483;
 }
 
-.plan.pick:before {
+.planner .plan.pick:before {
     content: '\2713';
     display: inline-block;
 }

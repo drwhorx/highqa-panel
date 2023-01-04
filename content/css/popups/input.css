@@ -1,3 +1,7 @@
+.alpha.input {
+    overflow: hidden;
+}
+
 .popup.input {
     min-width: 150vh;
     padding: 2.5vh 4vh;
@@ -10,12 +14,11 @@
 }
 
 .popup.input .drawings1 {
-    height: 80vh;
+    padding: 2.5vh 0;
     box-shadow: 0 0 4vh #000000;
 }
 
 .popup.input .drawings2 {
-    height: 75vh;
     border-radius: 1vh;
     overflow: hidden;
     margin: auto;
@@ -29,16 +32,17 @@
 
 .popup.input .drawings {
     height: 75vh;
-    width: 145vh;
+    width: 0;
+    padding: 0 72.5vh;
     box-shadow: 0 0 2vh #101010 inset;
     border-radius: 1vh;
     overflow: scroll hidden;
     scroll-snap-type: x mandatory;
+    align-items: center;
+    gap: 5vh;
 }
 
 .popup.input .drawing {
-    height: 67vh;
-    margin: 3vh;
     scroll-snap-align: center;
     min-width: fit-content;
     position: relative;
@@ -49,6 +53,28 @@
 .popup.input .drawing .loading {
     height: 0;
     margin: 0 auto;
+    transform: translateY(2vh);
+}
+.popup.input .drawing .spotlight {
+    position: relative;
+    margin: 0 auto;
+    height: 4vh;
+    transform: translateY(-11vh);
+    width: fit-content;
+    gap: 2vh;
+}
+
+.popup.input .drawing .dimreq {
+    height: 4vh;
+    line-height: 4vh;
+    font-size: 3.5vh;
+    width: fit-content;
+    padding: 1vh 2vh;
+    color: black;
+    border-radius: 1vh;
+    box-shadow: 0 0 2vh #000;
+    border: black .4vh solid;
+    background-color: #ffffffa0;
 }
 
 .popup.input .drawing .clip {
@@ -56,14 +82,13 @@
     overflow: hidden;
     box-shadow: 0 0 2vh #101010;
     border-radius: 1vh;
+    background-color: #777777;
 }
 
-.popup.input .drawing .scroll {
-    height: 67vh;
+.popup.input .drawing .gallery {
     width: auto;
     overflow: auto;
     position: relative;
-    background-color: #777777;
 }
 
 .popup.input .drawing img {
@@ -75,7 +100,7 @@
 }
 
 .popup.input .drawing .dims {
-    height: 59vh;
+    height: 58.5vh;
     padding: 4vh;
     position: absolute;
     border-radius: 1vh;
@@ -89,48 +114,63 @@
     border: 0.2vh solid;
     cursor: pointer;
     position: absolute;
+    transform-origin: center;
     transition: transform .1s, background-color .1s;
     border-radius: .4vh;
     display: flex;
+    align-items: center;
+    /* box-shadow: 0 0 .4vh #101010; */
 }
 
-.popup.input .drawing .balloon {
-    position: relative;
-    height: 2vh;
-    width: 2vh;
-    left: -2.5vh;
-    border: solid .2vh #f33f3c;
-    border-radius: 1.1vh;
-    color: black;
-    vertical-align: center;
-    line-height: 2vh;
-    overflow: hidden;
+.balloon {
+    height: 1.5vh;
+    width: 1.5vh;
+    left: -1vh;
+    position: absolute;
+    border-radius: 1vh;
+    border: 0.2vh solid red;
     background-color: white;
+    color: black;
+    line-height: 1.7vh;
+    font-size: 1vh;
+    text-align: center;
 }
 
-.popup.input .drawing .dim.fail {
+.popup.input .drawing .dim.fail,
+.popup.input .drawing .dimreq.fail,
+.popup.input .multiples .multiple.fail {
     border-color: #f33f3c;
     background-color: #dc54518c;
 }
-.popup.input .drawing .dim.fail:hover {
+.popup.input .drawing .dim.fail:hover,
+.popup.input .multiples .multiple.fail:hover {
     transform: scale(1.05);
     background-color: #ef8c8a8c;
 }
-.popup.input .drawing .dim.done {
+.popup.input .drawing .dim.done,
+.popup.input .drawing .dimreq.done,
+.popup.input .multiples .multiple.done {
     border-color: #36ef40;
     background-color: #59d45f8c;
 }
-.popup.input .drawing .dim.done:hover {
+.popup.input .drawing .dim.done:hover,
+.popup.input .multiples .multiple.done:hover {
     transform: scale(1.05);
     background-color: #93f1988c;
 }
-.popup.input .drawing .dim.insp {
+.popup.input .drawing .dim.insp,
+.popup.input .drawing .dimreq.insp,
+.popup.input .multiples .multiple.insp {
     border-color: #ffda06;
     background-color: #f8de498c;
 }
-.popup.input .drawing .dim.insp:hover {
+.popup.input .drawing .dim.insp:hover,
+.popup.input .multiples .multiple.insp:hover {
     transform: scale(1.05);
     background-color: #f5e4838c;
+}
+.popup.input .multiples .multiple:active {
+    transform: scale(0.95) !important;
 }
 
 .popup.input .buttons {
@@ -139,18 +179,13 @@
 
 .popup.input .zoomin,
 .popup.input .zoomfit,
-.popup.input .zoomout,
-.popup.input .serialize {
+.popup.input .zoomout {
     width: 10vh;
     height: 8vh;
     font-size: 3vh;
     line-height: 8vh;
     text-align: center;
     margin: 0 1vh;
-}
-
-.popup.input .serialize {
-    width: 20vh;
 }
 
 .popup.input .info1,
@@ -181,16 +216,13 @@
     width: 19.2vh;
     font-size: 3vh;
     text-align: center;
-    background-color: #444;
-    border: #333 solid .4vh;
     overflow: auto;
-    border-radius: 1vh;
 }
 .popup.input .data .row {
     width: 20vh;
     gap: 1vh;
 }
-.popup.input .data .number {
+.popup.input .data .clicky.number {
     font-size: 4vh;
     min-width: 6vh;
     max-width: 9.5vh;
@@ -201,16 +233,13 @@
     border-radius: 1vh;
     box-shadow: 0 0 1vh #1D1D1D;
 }
-.popup.input .data .number:hover {
+.popup.input .data .clicky.number:hover {
     transform: scale(1.05);
 }
-.popup.input .data .number:active {
+.popup.input .data .clicky.number:active {
     transform: scale(0.95);
 }
-.popup.input .data .accept,
-.popup.input .data .cancel,
-.popup.input .data .clear,
-.popup.input .data .more {
+.popup.input .data .clicky {
     font-size: 3vh;
     height: 5vh;
     line-height: 5vh;
@@ -218,22 +247,92 @@
     text-align: center;
     box-shadow: 0 0 1vh #1D1D1D;
 }
-.popup.input .data .accept {
-    background-color: #59d45f;
+.popup.input .controls .input {
+    flex-grow: 1;
+    justify-content: center;
 }
-.popup.input .data .accept.invalid {
-    background-color: #777777;
-    color: #444444;
+
+.popup.input .controls .serial,
+.popup.input .controls .comments,
+.popup.input .controls .attach {
+    position: relative;
+    font-size: 3vh;
+    text-align: center;
+    width: 40vh;
+    margin: 2vh 2vh;
+    padding: 1vh;
+    resize: none;
 }
-.popup.input .data .accept.invalid:hover {
-    background-color: #888888;
+
+.popup.input .controls .attach {
+    margin: 0 2vh;
+    width: 40.4vh;
+    border: 0.2vh;
+    line-height: 4vh;
+    bottom: 1vh;
 }
-.popup.input .data .accept:hover {
-    background-color: #93f198;
+
+@keyframes pulsate {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 12vh 0;
+    }
 }
-.popup.input .data .cancel {
-    background-color: #dc5451;
+
+.popup.input .controls .serial.pulsate {
+    background-image: linear-gradient(-45deg,
+        transparent 0,
+        transparent 32.5%,
+        #f8de498c 32.5%,
+        #f8de498c 67.5%,
+        transparent 67.5%,
+        transparent 100%);
+    background-size: 12vh;
+    background-repeat: repeat-x;
+    animation: pulsate 2s linear infinite;
 }
-.popup.input .data .cancel:hover {
-    background-color: #ef8c8a;
+
+.popup.input .drawing .multiple.pulsate {
+    background-image: linear-gradient(-45deg,
+        transparent 0,
+        transparent 32.5%,
+        #ffffff6c 32.5%,
+        #ffffff6c 67.5%,
+        transparent 67.5%,
+        transparent 100%);
+    background-size: 12vh;
+    background-repeat: repeat-x;
+    animation: pulsate 2s linear infinite;
+}
+
+.popup.input .drawing .multiples {
+    position: relative;
+    border-radius: 1vh;
+    overflow: hidden;
+    opacity: 0;
+    width: 0;
+}
+
+.popup.input .drawing .multiples .scroll {
+    max-height: 59vh;
+    align-items: center;
+    padding: 1.5vh 0;
+    gap: 1.5vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-grow: 1;
+}
+
+.popup.input .drawing .multiple {
+    line-height: 5vh;
+    font-size: 3vh;
+    width: 20vh;
+    border: black solid .4vh;
+    position: relative;
+}
+
+.popup.input .keyboard {
+
 }

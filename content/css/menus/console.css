@@ -23,17 +23,23 @@
     box-shadow: 0 0 3vh #1D1D1D;
     border-radius: 1vh;
 }
-
 #title {
     width: 100%;
     flex-grow: 1;
     justify-content: space-between;
+    z-index: 100;
 }
 #title > .section {
     width: 40vh;
+    align-items: center;
     justify-content: center;
     line-height: 7.5vh;
     font-size: 3vh;
+}
+#title .keyboard {
+    padding: 0 2vh;
+    height: 6vh;
+    line-height: 6vh;
 }
 .section {
     display: flex;
@@ -78,102 +84,6 @@
     overflow: hidden;
     top: 2vh;
     opacity: 0;
-}
-
-#console > .shop .info1 {
-    flex-direction: column;
-    padding: 1vh;
-    gap: 1vh;
-}
-#console > .shop .info1 .pdf1 {
-    height: 59vh;
-    box-shadow: 0 0 2vh #101010 inset;
-    overflow: hidden;
-    border-radius: 1vh;
-    display: flex;
-}
-#console > .shop .info1 div.pdf {
-    height: 59vh;
-    display: flex;
-    overflow: auto;
-    position: relative;
-    gap: 5vh;
-    border-radius: 1vh;
-    padding: 0 5vh;
-    scroll-snap-type: x mandatory;
-}
-#console > .shop .info1 img.pdf {
-    height: 49vh;
-    border-radius: 1vh;
-    margin: auto 0;
-    box-shadow: 0 0 2vh #101010;
-    scroll-snap-align: center;
-}
-#console > .shop .info1 .loading {
-    height: 4vh;
-    margin: auto;
-}
-
-#console > .shop .info1 .header {
-    display: flex;
-    justify-content: space-around;
-}
-#console > .shop .info1 .jobNo,
-#console > .shop .info1 .partNo,
-#console > .shop .info2 .jobNo,
-#console > .shop .info2 .opNo,
-#console > .shop .info2 .reload {
-    font-size: 3vh;
-}
-
-#console > .shop .info2 .partNo,
-#console > .shop .info2 .opName {
-    font-size: 2.5vh;
-    padding-bottom: 1vh;
-}
-
-#console > .shop .info2 .reload {
-    line-height: 6vh;
-    height: 6vh;
-    width: 25vh;
-}
-
-#console > .shop .info2 {
-    flex-direction: column;
-    align-items: center;
-    padding: 2vh;
-    gap: .5vh;
-}
-
-#console > .shop .ops {
-    width: 50vh;
-}
-#console > .shop .jobs {
-    width: 115vh;
-}
-
-#console > .qual > .actions > .section {
-    justify-content: space-between;
-}
-#console > .qual > .actions {
-    gap: 15vh;
-}
-#console > .qual > .actions .s1 {
-    width: 40vh;
-    display: flex;
-    flex-direction: column;
-    gap: 5vh;
-}
-#console > .qual .action .card {
-    width: 40vh;
-    height: 40vh;
-}
-#console > .qual > .daily {
-    gap: 5vh;
-    width: 95vh;
-}
-#console > .qual > .daily > .date {
-    height: 10vh;
 }
 
 #console > .ops {

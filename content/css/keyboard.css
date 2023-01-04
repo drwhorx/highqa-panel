@@ -1,0 +1,35 @@
+.section.keyboard {
+    padding: 2vh;
+    gap: 2vh;
+    margin: 0 auto;
+    width: max-content;
+}
+
+.section.keyboard.bg {
+    box-shadow: 0 0 4vh #1D1D1D;
+}
+
+.section.keyboard .option {
+    width: 15vh;
+    height: 6vh;
+    line-height: 6vh;
+    font-size: 3vh;
+}
+
+.section.keyboard .letter {
+    width: 6vh;
+    height: 6vh;
+    line-height: 6vh;
+    font-size: 3vh;
+}
+
+.section.keyboard .letters,
+.section.keyboard .options {
+    justify-content: center;
+    gap: 1vh;
+}
+
+.section.keyboard .row {
+    justify-content: center;
+    gap: 1vh;
+}

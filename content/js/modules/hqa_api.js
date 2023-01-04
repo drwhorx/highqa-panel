@@ -14,39 +14,23 @@ class POST {
         while (!success) {
             if (this.path != "auth/token")
                 document.bearer = await this.bearer();
-            this.res = await $.ajax({
-                url: route + this.path,
-                type: 'POST',
-                data: JSON.stringify(this.req),
-                contentType: "application/json; charset=utf-8",
-                success: () => success = true,
-                headers: {
-                    Authorization: document.bearer
-                }
-            });
-            if (!success)
-                document.bearer = "";
-            else
-                return this.res;
-        }
-    }
-    async pdf() {
-        let success;
-        while (!success) {
-            document.bearer = await this.bearer();
-            this.res = await $.ajax({
-                url: route + this.path,
-                type: 'POST',
-                data: JSON.stringify(this.req),
-                xhrFields: {
-                    responseType: 'blob'
-                },
-                contentType: "application/json; charset=utf-8",
-                success: () => success = true,
-                headers: {
-                    Authorization: document.bearer
-                }
-            });
+            try {
+                this.res = await $.ajax({
+                    url: route + this.path,
+                    type: 'POST',
+                    data: JSON.stringify(this.req),
+                    contentType: "application/json; charset=utf-8",
+                    xhrFields: this.path == "filestorage/download" ? ({
+                        responseType: 'blob'
+                    }) : null,
+                    success: () => success = true,
+                    headers: {
+                        Authorization: document.bearer
+                    }
+                });
+            } catch (err) {
+                await timeout(500);
+            }
             if (!success)
                 document.bearer = "";
             else
@@ -96,6 +80,50 @@ const APIreq = {
     "parts/get": {
         "PartGUID": "",
     },
+    "parts/clone": {
+        "PartGUID": "",
+        "CopyMaterials": false,
+        "CopyResults": false,
+        "CopyReports": false,
+        "CopyDocuments": false,
+        "CopyDefaultSettings": false
+    },
+    "parts/delete": {
+        "PartGUIDs": "",
+        "DeleteCompletely": false
+    },
+    "parts/set": {
+        "InputPart": {
+            "GUID": "",
+            "PartNumber": "",
+            "PartName": "",
+            "PartRevisionLevel": "",
+            "PartComments": "",
+            "CustomerGUID": "",
+            "File": "",
+            "ERPID": "",
+            "BarcodeID": "",
+            "PartCategoryGUID": ""
+        }
+    },
+    "jobs/set": {
+        "InputJob": {
+            "GUID": "",
+            "PartGUID": "",
+            "Number": "",
+            "Title": "",
+            "Revision": "",
+            "Quantity": 0,
+            "Status": 0,
+            "ActivationDate": null,
+            "DeliveryDate": null,
+            "ERPID": "",
+            "BarcodeID": "",
+            "AQLMode": 0,
+            "AQLTableGUID": "",
+            "InspectionLevel": 0
+        }
+    },
     "jobs/list": {
         "PartGUIDs": "",
         "Number": "",
@@ -117,6 +145,25 @@ const APIreq = {
         "LotGUIDs": "",
         "Page": "",
         "PageSize": 0
+    },
+    "lots/set": {
+        "InputLot": {
+            "GUID": "",
+            "JobGUID": "",
+            "Number": "",
+            "Status": 0,
+            "StartDate": null,
+            "DueDate": null,
+            "Size": 0,
+            "ERPID": "",
+            "BarcodeID": "",
+            "SamplesPerHour": 0,
+            "HoursPerShift": 0,
+            "QualityStage": 0,
+            "QualityLevel": 0,
+            "AQLTableGUID": "",
+            "InspectionLevel": 0
+        }
     },
     "samples/list": {
         "PartGUID": "",
@@ -164,10 +211,20 @@ const APIreq = {
         "Page": "",
         "PageSize": 0
     },
+    "results/delete": {
+        "ResultGUIDs": "",
+    },
     "results/bulkload": {
         "SampleGUID": "",
         "IgnoreInvalidLines": true,
         "InputResults": []
+    },
+    "results/getattachments": {
+        "ResultGUID": ""
+    },
+    "results/addattachments": {
+        "ResultGUID": "",
+        "Files": ""
     },
     "ncr/list": {
         "JobGUID": "",
@@ -224,6 +281,21 @@ const APIreq = {
         "GUID": "",
         "DimGUID": "",
         "SampleGUIDs": ""
+    },
+    "operations/set": {
+        "CopyOperationGUID": "",
+        "DimGUIDs": "",
+        "InputOperation": {
+            "GUID": "",
+            "PartGUID": "",
+            "WorkCellGUID": "",
+            "MachineGUID": "",
+            "Code": "",
+            "Title": "",
+            "Description": "",
+            "ERPID": "",
+            "BarcodeID": ""
+        }
     },
     "operations/list": {
         "PartGUID": "",

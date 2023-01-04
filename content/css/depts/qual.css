@@ -1,0 +1,148 @@
+#console > .qual > .actions > .section {
+    justify-content: space-between;
+}
+#console > .qual > .actions {
+    gap: 15vh;
+}
+#console > .qual .action .card {
+    width: 40vh;
+    height: 85vh;
+}
+
+#console > .qual > .daily {
+    gap: 5vh;
+    width: 115vh;
+}
+#console > .qual > .daily > .date {
+    gap: 2vh;
+    min-height: 10vh;
+    align-items: center;
+    justify-content: center;
+}
+#console > .qual > .daily > .date > .current {
+    background-color: #666666;
+    box-shadow: 0 0 3vh #1D1D1D;
+    transition: background-color .1s, transform .1s;
+    border-radius: 1vh;
+}
+#console > .qual > .daily > .date > .back,
+#console > .qual > .daily > .date > .current,
+#console > .qual > .daily > .date > .next {
+    height: 5vh;
+    font-size: 3vh;
+    line-height: 5vh;
+    min-width: 4vh;
+    padding: 0 3vh;
+}
+#console > .qual > .daily .results {
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 1vh;
+    min-height: 70vh;
+}
+#console > .qual > .daily .group {
+    border-radius: 1vh;
+    box-shadow: 0 0 2vh #1D1D1D;
+    width: 105vh;
+}
+#console > .qual > .daily .grid {
+    border-radius: 1vh;
+    max-height: 40vh;
+    box-shadow: 0 0 2vh #1D1D1D;
+}
+
+#console > .qual > .daily .scroll {
+    gap: 4vh;
+    align-items: center;
+    padding: 4vh 0;
+}
+#console > .qual > .daily .cell.dim {
+    transition: background-color .4s;
+}
+#console > .qual > .daily > .date > .current:hover {
+    transform: scale(1.03);
+    background-color: #777777;
+}
+#console > .qual > .daily .cell.dim:hover {
+    background-color: #777777;
+}
+
+#console > .qual > .daily .group > .section > .section.vertical {
+    padding: 1vh 0;
+    gap: .5vh;
+}
+
+#console > .qual > .daily > .results .jobNo,
+#console > .qual > .daily > .results .opNo,
+#console > .qual > .daily > .results .partNo,
+#console > .qual > .daily > .results .opName {
+    width: 44vh;
+    font-size: 3vh;
+    padding-left: 2vh;
+}
+
+#console > .qual .jobs {
+    width: 115vh;
+}
+
+#console > .qual > .spc {
+    width: 115vh;
+    overflow-y: auto;
+    font-size: 3vh;
+    text-align: center;
+    align-items: center;
+    padding: 2vh;
+    gap: 3vh;
+}
+
+#console > .qual > .spc > .title {
+    line-height: 6vh;
+    background-color: #444;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    box-shadow: 0 0 3vh #1D1D1D;
+    width: 100vh;
+    border-radius: 1vh;
+}
+
+#console > .qual > .spc > .groups {
+    padding-bottom: 3vh;
+    gap: 3vh;
+}
+
+#console > .qual > .spc .group {
+    gap: 2vh;
+    display: flex;
+    flex-direction: column;
+    width: 96vh;
+    background-color: #555;
+    padding: 2vh;
+    box-shadow: 0 0 3vh #1D1D1D;
+    border-radius: 1vh;
+}
+
+#console > .qual > .spc .group > .title {
+    line-height: 3vh;
+}
+
+#console > .qual > .spc .row {
+    justify-content: center;
+    gap: 2vh;
+}
+
+#console > .qual > .spc .cell {
+    background-color: #777;
+    border-radius: 1vh;
+    box-shadow: 0 0 1vh #1D1D1D;
+}
+
+#console > .qual > .spc .dimReq {
+    font-size: 2.5vh;
+    line-height: 3vh;
+}
+
+#console > .qual > .spc svg {
+    width: 30vh;
+    height: 12vh;
+}

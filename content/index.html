@@ -6,18 +6,22 @@
     <link rel="stylesheet" href="css/fonts/fonts.css">
 
     <link rel="stylesheet" href="css/loading.css">
-    <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/tables.css">
     <link rel="stylesheet" href="css/expand.css">
     <link rel="stylesheet" href="css/grids.css">
+    <link rel="stylesheet" href="css/keyboard.css">
 
     <link rel="stylesheet" href="css/menus/planner.css">
     <link rel="stylesheet" href="css/menus/console.css">
+    <link rel="stylesheet" href="css/depts/engi.css">
+    <link rel="stylesheet" href="css/depts/shop.css">
+    <link rel="stylesheet" href="css/depts/qual.css">
 
+    <link rel="stylesheet" href="css/popups/quantity.css">
     <link rel="stylesheet" href="css/popups/updater.css">
     <link rel="stylesheet" href="css/popups/popups.css">
     <link rel="stylesheet" href="css/popups/input.css">
     <link rel="stylesheet" href="css/popups/login.css">
+    <link rel="stylesheet" href="css/popups/more.css">
     <link rel="stylesheet" href="css/popups/spc.css">
 
     <script src="js/lib/jquery-3.6.0.min.js"></script>
@@ -25,6 +29,7 @@
     <script src="js/lib/mathjs.js"></script>
     <script src="js/lib/d3.js"></script>
     <script src="js/lib/pdf.js"></script>
+    <script src="js/lib/xlsx.js"></script>
     <script src="js/lib/jszip.min.js"></script>
     <script src="js/lib/socket.io.js"></script>
 
@@ -34,14 +39,19 @@
     <script src="js/modules/hqa_api.js"></script>
     <script src="js/modules/hqa_model.js"></script>
     <script src="js/modules/hqa_cache.js"></script>
+    <script src="js/modules/xdfx.js"></script>
     <script src="js/modules/samples.js"></script>
-    <script src="js/ui/minitab.js"></script>
 
     <script src="js/ui/spc.js"></script>
     <script src="js/ui/prompts.js"></script>
     <script src="js/ui/planner.js"></script>
+    <script src="js/ui/quantity.js"></script>
     <script src="js/ui/input.js"></script>
     <script src="js/ui/login.js"></script>
+
+    <script src="js/ui/depts/engi.js"></script>
+    <script src="js/ui/depts/shop.js"></script>
+    <script src="js/ui/depts/qual.js"></script>
 
     <table hidden>
         <tr class="expand copy">
@@ -78,18 +88,18 @@
 </head>
 
 <body>
-    <div class="loading" hidden>
-        <div class="progress">
-            <div>loading</div>
-        </div>
-    </div>
     <div id="wrapper">
         <div id="content">
             <div id="menus">
                 <div id="console1">
                     <div id="title" class="section">
                         <div class="section name">Guest</div>
-                        <div class="section company">v0.1.7</div>
+                        <div class="loading" hidden>
+                            <div class="progress">
+                                <div>loading</div>
+                            </div>
+                        </div>
+                        <div class="section company">v0.3.0</div>
                     </div>
                     <div id="console">
                         <div class="section engi">
@@ -98,27 +108,106 @@
                                     <img class="icon" src="css/img/gears.svg">
                                     <div class="label">Engineering</div>
                                 </div>
+                                <div class="pdf section bg" hidden>
+                                    <div class="partNo"></div>
+                                    <div class="pdf clip">
+                                        <div class="pdf scroll" hidden>
+                                            <img class="copy pdf"></img>
+                                        </div>
+                                        <div class="loading" hidden>
+                                            <div class="progress">
+                                                <div>loading</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="section actions" hidden>
-                                <div class="section vertical">
-                                    <div class="section card bg">
+                            <div class="section vertical actions" hidden>
+                                <div class="section">
+                                    <div class="section make card bg">
                                         <img class="icon" src="css/img/gears.svg">
                                         <div class="label">New Job</div>
                                     </div>
-                                    <div class="section card bg">
+                                </div>
+                                <div class="section">
+                                    <div class="section sync card bg">
                                         <img class="icon" src="css/img/gears.svg">
-                                        <div class="label">Edit Job</div>
+                                        <div class="label">Sync XDFX</div>
+                                    </div>
+                                    <div class="section xdfx card bg">
+                                        <img class="icon" src="css/img/gears.svg">
+                                        <div class="label">Edit XDFX</div>
                                     </div>
                                 </div>
-                                <div class="section vertical">
-                                    <div class="section card bg">
-                                        <img class="icon" src="css/img/gears.svg">
-                                        <div class="label">Audit Job</div>
+                            </div>
+                            <div class="section parts bg" hidden>
+                                <div class="clip">
+                                    <div class="grid vertical hover">
+                                        <div class="row head">
+                                            <div class="cell partNo left right" style="width: 28vh">
+                                                <input placeholder="Part #" autocomplete="off">
+                                            </div>
+                                            <div class="cell customer" style="width: 25vh">
+                                                <input placeholder="Customer" autocomplete="off">
+                                            </div>
+                                            <div class="cell partName" style="width: 23vh">
+                                                <input placeholder="Part Name" autocomplete="off">
+                                            </div>
+                                            <div class="cell comment" style="width: 31vh">
+                                                <input placeholder="Comment" autocomplete="off">
+                                            </div>
+                                        </div>
+                                        <div class="row content copy">
+                                            <div class="cell partNo left right" style="width: 28vh">214-040-604-003
+                                            </div>
+                                            <div class="cell customer" style="width: 25vh">BELL HELICOPTER</div>
+                                            <div class="cell partName" style="width: 23vh">SHAFT</div>
+                                            <div class="cell comment" style="width: 31vh">OFFLOAD 090-200</div>
+                                        </div>
+                                        <div class="row fill" style="width: 30vh"></div>
                                     </div>
-                                    <div class="section card bg">
-                                        <img class="icon" src="css/img/gears.svg">
-                                        <div class="label">Edit Plan</div>
+                                </div>
+                            </div>
+                            <div class="section vertical bg make" hidden>
+                                <input class="display jobNo" placeholder="Job #" autocomplete="off">
+                                <input class="display dueDate" placeholder="Due Date" autocomplete="off" type="date">
+                                <input class="display jobQty" placeholder="Job Quantity" autocomplete="off">
+                                <select class="display process" required>
+                                    <option disabled selected value="">MFG Operation</option>
+                                    <option class="copy mfg"></option>
+                                </select>
+                                <div class="clicky accept">Accept</div>
+                            </div>
+                            <div class="section vertical bg xdfx" hidden>
+                                <input type="file" accept=".xdfx" autocomplete="off" hidden>
+                                <div class="clicky toggle classes">Auto Classes</div>
+                                <div class="clicky toggle numbers">Fix Numbering</div>
+                                <div class="clicky accept">Export</div>
+                            </div>
+                            <div class="section vertical sync" hidden>
+                                <div class="section files">
+                                    <div class="section vertical bg from">
+                                        <input type="file" accept=".xdfx" autocomplete="off" hidden>
+                                        <div class="clicky add">Copy From</div>
+                                        <div class="copy section bg xdfx">
+                                            <div class="partNo"></div>
+                                            <div class="jobNo"></div>
+                                        </div>
                                     </div>
+                                    <div class="section vertical bg to">
+                                        <input type="file" accept=".xdfx" autocomplete="off" multiple="true" hidden>
+                                        <div class="clicky add">Copy To</div>
+                                        <div class="copy section bg xdfx">
+                                            <div class="partNo"></div>
+                                            <div class="jobNo"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section vertical bg options">
+                                    <div class="clicky dims">Sync Dims</div>
+                                    <div class="clicky drawings">Sync Drawings</div>
+                                    <div class="clicky results">Move Results</div>
+                                    <div class="clicky accept">Sync XDFX(s)</div>
                                 </div>
                             </div>
                         </div>
@@ -145,128 +234,80 @@
                                     </div>
                                 </div>
                                 <div class="section info2 bg" hidden>
-                                    <div class="jobNo"></div>
-                                    <div class="partNo"></div>
-                                    <div class="opNo"></div>
-                                    <div class="opName"></div>
+                                    <div class="section vertical">
+                                        <div class="jobNo"></div>
+                                        <div class="partNo"></div>
+                                    </div>
+                                    <div class="section vertical">
+                                        <div class="opNo"></div>
+                                        <div class="opName"></div>
+                                    </div>
                                     <div class="reload clicky">Refresh</div>
-                                    <div class="fpi clicky" hidden>First Piece</div>
+                                    <div class="fpi clicky">First Piece</div>
+                                    <div class="repair clicky">Fix Quantity</div>
+                                    <div class="export clicky">Export Data</div>
                                 </div>
                             </div>
                             <div class="section planner bg" hidden>
-                                <div class="planner1">
-                                    <div class="planner2 grid2">
-                                        <div class="planner3 grid1">
-                                            <table class="planner grid">
-                                                <tr class="bg1">
-                                                    <td></td>
-                                                </tr>
-                                                <tr class="bg2">
-                                                    <td style="min-width: 42vh"></td>
-                                                </tr>
-                                                <tr class="top">
-                                                    <td class="left dimNo" style="min-width: 8vh">Dim #</td>
-                                                    <td class="left dimReq" style="min-width: 30vh; left: 10vh">
-                                                        Requirement
-                                                    </td>
-                                                    <td style="min-width: 8vh" class="copy sample">S/N</td>
-                                                </tr>
-                                                <tr class="copy content">
-                                                    <td class="left dimNo">10</td>
-                                                    <td class="left dimReq gdt" style="left: 10vh">
-                                                        {½~|.0~0~2~|X~|D~}
-                                                    </td>
-                                                    <td class="copy plan"></td>
-                                                </tr>
-                                            </table>
+                                <div class="clip">
+                                    <div class="grid">
+                                        <div class="row head">
+                                            <div class="cell left" style="width: 44vh">
+                                                <div class="cell dimNo" style="width: 10vh">Dim #</div>
+                                                <div class="cell dimReq" style="width: 34vh">Requirement</div>
+                                            </div>
+                                            <div class="cell copy sample" style="width: 8vh">S/N</div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="section lots bg" hidden>
-                                <div class="grid2">
-                                    <div class="grid1 vertical dohover">
-                                        <table class="grid">
-                                            <colgroup>
-                                                <col style="width: 17vh">
-                                                <col style="width: 33vh">
-                                            </colgroup>
-                                            <thead></thead>
-                                            <tr class="bg1">
-                                                <td></td>
-                                            </tr>
-                                            <tr class="bg2">
-                                                <td style="min-width: 17vh"></td>
-                                            </tr>
-                                            <tr class="top">
-                                                <td class="opNo left" style="min-width: 15vh">Lot #</td>
-                                                <td class="opName" style="min-width: 31vh">Title</td>
-                                            </tr>
-                                            <tr class="copy content">
-                                                <td class="opNo left">5300-01</td>
-                                                <td class="opName">LATHE</td>
-                                            </tr>
-                                        </table>
+                                        <div class="row content copy">
+                                            <div class="cell left" style="width: 44vh">
+                                                <div class="cell dimNo" style="width: 10vh"></div>
+                                                <div class="cell dimReq gdt" style="width: 34vh"></div>
+                                            </div>
+                                            <div class="cell copy plan" style="width: 8vh"></div>
+                                        </div>
+                                        <div class="row fill" style="width: 46vh"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="section ops bg" hidden>
-                                <div class="grid2">
-                                    <div class="grid1 vertical dohover">
-                                        <table class="grid">
-                                            <colgroup>
-                                                <col style="width: 17vh">
-                                                <col style="width: 33vh">
-                                            </colgroup>
-                                            <thead></thead>
-                                            <tr class="bg1">
-                                                <td></td>
-                                            </tr>
-                                            <tr class="bg2">
-                                                <td style="min-width: 17vh"></td>
-                                            </tr>
-                                            <tr class="top">
-                                                <td class="opNo left" style="min-width: 15vh">OP #</td>
-                                                <td class="opName" style="min-width: 31vh">Title</td>
-                                            </tr>
-                                            <tr class="copy content">
-                                                <td class="opNo left">OP 030</td>
-                                                <td class="opName">LATHE</td>
-                                            </tr>
-                                        </table>
+                                <div class="clip">
+                                    <div class="grid vertical hover">
+                                        <div class="row head">
+                                            <div class="cell opNo left center" style="width: 15vh">OP #</div>
+                                            <div class="cell opName" style="width: 31vh">Title</div>
+                                        </div>
+                                        <div class="row content copy">
+                                            <div class="cell opNo left center" style="width: 15vh">OP 030</div>
+                                            <div class="cell opName" style="width: 31vh">LATHE</div>
+                                        </div>
+                                        <div class="row fill" style="width: 17vh"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="section jobs bg" hidden>
-                                <div class="grid2">
-                                    <div class="grid1 vertical dohover">
-                                        <table class="grid">
-                                            <colgroup>
-                                                <col style="width: 22vh">
-                                                <col style="width: 27vh">
-                                                <col style="width: 33vh">
-                                                <col style="width: 32vh">
-                                            </colgroup>
-                                            <thead></thead>
-                                            <tr class="bg1">
-                                                <td></td>
-                                            </tr>
-                                            <tr class="bg2">
-                                                <td style="min-width: 22vh"></td>
-                                            </tr>
-                                            <tr class="top">
-                                                <td class="jobNo left" style="min-width: 21vh">Job #</td>
-                                                <td class="partNo" style="min-width: 25vh">Part #</td>
-                                                <td class="customer" style="min-width: 31vh">Customer</td>
-                                                <td class="partName" style="min-width: 30vh">Part Name</td>
-                                            </tr>
-                                            <tr class="copy content">
-                                                <td class="jobNo left">53300-01</td>
-                                                <td class="partNo">214-040-604-003</td>
-                                                <td class="customer">BELL HELICOPTER</td>
-                                                <td class="partName">SHAFT</td>
-                                            </tr>
-                                        </table>
+                                <div class="clip">
+                                    <div class="grid vertical hover">
+                                        <div class="row head">
+                                            <div class="cell jobNo left" style="width: 21vh">
+                                                <input placeholder="Job #" autocomplete="off">
+                                            </div>
+                                            <div class="cell partNo" style="width: 25vh">
+                                                <input placeholder="Part #" autocomplete="off">
+                                            </div>
+                                            <div class="cell customer" style="width: 31vh">
+                                                <input placeholder="Customer" autocomplete="off">
+                                            </div>
+                                            <div class="cell partName" style="width: 30vh">
+                                                <input placeholder="Part Name" autocomplete="off">
+                                            </div>
+                                        </div>
+                                        <div class="row content copy">
+                                            <div class="cell jobNo left" style="width: 21vh">53300-01</div>
+                                            <div class="cell partNo" style="width: 25vh">214-040-604-003</div>
+                                            <div class="cell customer" style="width: 31vh">BELL HELICOPTER</div>
+                                            <div class="cell partName" style="width: 30vh">SHAFT</div>
+                                        </div>
+                                        <div class="row fill" style="width: 23vh"></div>
                                     </div>
                                 </div>
                             </div>
@@ -280,305 +321,114 @@
                             </div>
                             <div class="section daily vertical" hidden>
                                 <div class="section bg date">
-                                    <div class="back">&#60;&#60;</div>
+                                    <div class="back clicky">&#60;&#60;</div>
                                     <div class="current"></div>
-                                    <div class="next">&#62;&#62;</div>
+                                    <div class="next clicky">&#62;&#62;</div>
                                 </div>
-                                <div class="section bg vertical results">
-                                    <div class="grid1 vertical group copy">
-                                        <table class="grid">
-                                            <colgroup>
-                                                <col style="width: 10vh">
-                                                <col style="width: 32vh">
-                                                <col style="width: 33vh">
-                                            </colgroup>
-                                            <thead></thead>
-                                            <tr class="bg1">
-                                                <td></td>
-                                            </tr>
-                                            <tr class="bg2">
-                                                <td style="min-width: 22vh"></td>
-                                            </tr>
-                                            <tr class="top">
-                                                <td class="left" style="min-width: 20vh">Job #</td>
-                                                <td class="left" style="min-width: 18vh; left: 22vh">
-                                                    OP #
-                                                </td>
-                                                <td style="min-width: 31vh"></td>
-                                            </tr>
-                                            <tr class="copy content">
-                                                <td class="left dimNo">Dim #</td>
-                                                <td class="left dimReq" style="left: 10vh">Requirement</td>
-                                                <td class="customer">Operator</td>
-                                            </tr>
-                                        </table>
+                                <div class="section bg vertical results" hidden>
+                                    <div class="section vertical scroll">
+                                        <div class="clip group copy">
+                                            <div class="section">
+                                                <div class="section vertical">
+                                                    <div class="jobNo">53300-01</div>
+                                                    <div class="partNo">214-040-604-003</div>
+                                                </div>
+                                                <div class="section vertical">
+                                                    <div class="opNo">OP 030</div>
+                                                    <div class="opName">LATHE</div>
+                                                </div>
+                                            </div>
+                                            <div class="grid vertical">
+                                                <div class="row head">
+                                                    <div class="cell left" style="width: 44vh">
+                                                        <div class="cell" style="width: 10vh">Dim #</div>
+                                                        <div class="cell" style="width: 34vh">Requirement</div>
+                                                    </div>
+                                                    <div class="cell" style="width: 10vh">Sample</div>
+                                                    <div class="cell" style="width: 25vh">Operator</div>
+                                                    <div class="cell" style="width: 18vh">Result</div>
+                                                </div>
+                                                <div class="row content copy">
+                                                    <div class="cell left dim" style="width: 44vh">
+                                                        <div class="cell dimNo" style="width: 10vh"></div>
+                                                        <div class="cell dimReq gdt" style="width: 34vh"></div>
+                                                    </div>
+                                                    <div class="cell sample" style="width: 10vh">#1</div>
+                                                    <div class="cell operator" style="width: 25vh">Amon Green</div>
+                                                    <div class="cell status" style="width: 18vh">PASS</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="section minitab" hidden>
-
+                            <div class="section jobs bg" hidden>
+                                <div class="clip">
+                                    <div class="grid vertical hover">
+                                        <div class="row head">
+                                            <div class="cell jobNo left" style="width: 21vh">
+                                                <input placeholder="Job #" autocomplete="off">
+                                            </div>
+                                            <div class="cell partNo" style="width: 25vh">
+                                                <input placeholder="Part #" autocomplete="off">
+                                            </div>
+                                            <div class="cell customer" style="width: 31vh">
+                                                <input placeholder="Customer" autocomplete="off">
+                                            </div>
+                                            <div class="cell partName" style="width: 30vh">
+                                                <input placeholder="Part Name" autocomplete="off">
+                                            </div>
+                                        </div>
+                                        <div class="row content copy">
+                                            <div class="cell jobNo left" style="width: 21vh">53300-01</div>
+                                            <div class="cell partNo" style="width: 25vh">214-040-604-003</div>
+                                            <div class="cell customer" style="width: 31vh">BELL HELICOPTER</div>
+                                            <div class="cell partName" style="width: 30vh">SHAFT</div>
+                                        </div>
+                                        <div class="row fill" style="width: 23vh"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section vertical bg spc" hidden>
+                                <div class="title"></div>
+                                <div class="loading" hidden>
+                                    <div class="progress">
+                                        <div>loading</div>
+                                    </div>
+                                </div>
+                                <div class="section vertical groups">
+                                    <div class="section vertical group copy">
+                                        <div class="title"></div>
+                                        <div class="copy section row">
+                                            <div class="copy section vertical cell clicky">
+                                                <div class="dimReq gdt"></div>
+                                                <svg viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="section actions" hidden>
-                                <div class="section vertical">
-                                    <div class="section action job">
-                                        <div class="section card bg">
-                                            <img class="icon" src="css/img/gears.svg">
-                                            <div class="label">Single Job</div>
-                                        </div>
-                                    </div>
-                                    <div class="section action daily">
-                                        <div class="section card bg">
-                                            <img class="icon" src="css/img/gears.svg">
-                                            <div class="label">Daily Data</div>
-                                        </div>
+                                <div class="section action daily">
+                                    <div class="section card bg">
+                                        <img class="icon" src="css/img/chart.png">
+                                        <div class="label">Daily Data</div>
                                     </div>
                                 </div>
-                                <div class="section vertical">
-                                    <div class="section action part">
-                                        <div class="section card bg">
-                                            <img class="icon" src="css/img/gears.svg">
-                                            <div class="label">Single Part</div>
-                                        </div>
+                                <div class="section action spc">
+                                    <div class="section card bg">
+                                        <img class="icon" src="css/img/chart.png">
+                                        <div class="label">SPC</div>
                                     </div>
-                                    <div class="section action minitab">
-                                        <div class="section card bg">
-                                            <img class="icon" src="css/img/gears.svg">
-                                            <div class="label">Minitab Export</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="section ops bg" hidden>
-                            <div class="grid2">
-                                <div class="grid1 vertical dohover">
-                                    <table class="grid">
-                                        <colgroup>
-                                            <col style="width: 17vh">
-                                            <col style="width: 33vh">
-                                        </colgroup>
-                                        <thead></thead>
-                                        <tr class="bg1">
-                                            <td></td>
-                                        </tr>
-                                        <tr class="bg2">
-                                            <td style="min-width: 17vh"></td>
-                                        </tr>
-                                        <tr class="top">
-                                            <td class="opNo left" style="min-width: 15vh">OP #</td>
-                                            <td class="opName" style="min-width: 31vh">Title</td>
-                                        </tr>
-                                        <tr class="copy content">
-                                            <td class="opNo left">OP 030</td>
-                                            <td class="opName">LATHE</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="section jobs bg" hidden>
-                            <div class="grid2">
-                                <div class="grid1 vertical dohover">
-                                    <table class="grid">
-                                        <colgroup>
-                                            <col style="width: 22vh">
-                                            <col style="width: 27vh">
-                                            <col style="width: 33vh">
-                                            <col style="width: 32vh">
-                                        </colgroup>
-                                        <thead></thead>
-                                        <tr class="bg1">
-                                            <td></td>
-                                        </tr>
-                                        <tr class="bg2">
-                                            <td style="min-width: 22vh"></td>
-                                        </tr>
-                                        <tr class="top">
-                                            <td class="jobNo left" style="min-width: 21vh">Job #</td>
-                                            <td class="partNo" style="min-width: 25vh">Part #</td>
-                                            <td class="customer" style="min-width: 31vh">Customer</td>
-                                            <td class="partName" style="min-width: 30vh">Part Name</td>
-                                        </tr>
-                                        <tr class="copy content">
-                                            <td class="jobNo left">53300-01</td>
-                                            <td class="partNo">214-040-604-003</td>
-                                            <td class="customer">BELL HELICOPTER</td>
-                                            <td class="partName">SHAFT</td>
-                                        </tr>
-                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="alpha updater" hidden>
-        <div class="popup updater section bg">
-            <div class="shout">Updating...</div>
-            <div class="title">v0.1.1 - July 6th, 2022</div>
-            <div class="notes">These are some release notes</div>
-            <div class="loading">
-                <div class="progress">
-                    <div>loading</div>
-                </div>
+            <div class="message" hidden>
+                
             </div>
-        </div>
-    </div>
-    <div class="alpha spc" hidden>
-        <div class="popup spc section bg">
-            <div class="s1">
-                <div class="q1 dimNo"></div>
-                <div class="q2 dimReq gdt"></div>
-            </div>
-            <div class="s2">
-                <div class="q3">
-                    <div class="s4">
-                        <div class="q1">
-                            <svg id="spc_canvas1" viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
-                        </div>
-                        <div class="q2">
-                            <svg id="spc_canvas2" viewBox="0 0 93.75 100" preserveAspectRatio="xMinYMin meet"></svg>
-                        </div>
-                        <div class="q4 xbar grid1 vertical">
-                            <table class="grid">
-                                <colgroup>
-                                    <col style="width: 12vh">
-                                    <col style="max-width: 17vh">
-                                </colgroup>
-                                <thead></thead>
-                                <tr class="bg1">
-                                    <td></td>
-                                </tr>
-                                <tr class="bg2">
-                                    <td style="min-width: 12vh"></td>
-                                </tr>
-                                <tr class="top">
-                                    <td class="name left" style="min-width: 10vh">X-Bar</td>
-                                    <td class="stat" style="min-width: 15vh"></td>
-                                </tr>
-                                <tr class="clone content">
-                                    <td class="name left">X-Bar</td>
-                                    <td class="stat xbar"></td>
-                                </tr>
-                                <tr class="clone content">
-                                    <td class="name left">CPK</td>
-                                    <td class="stat cpk"></td>
-                                </tr>
-                                <tr class="clone content">
-                                    <td class="name left">PPK</td>
-                                    <td class="stat ppk"></td>
-                                </tr>
-                                <tr class="clone content">
-                                    <td class="name left">UCL</td>
-                                    <td class="stat uclx"></td>
-                                </tr>
-                                <tr class="clone content">
-                                    <td class="name left">LCL</td>
-                                    <td class="stat lclx"></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="s4">
-                        <div class="q1">
-                            <svg id="spc_canvas3" viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
-                        </div>
-                        <div class="q2">
-                            <svg id="spc_canvas4" viewBox="0 0 93.75 100" preserveAspectRatio="xMinYMin meet"></svg>
-                        </div>
-                        <div class="q4 rbar grid1 vertical">
-                            <table class="grid">
-                                <colgroup>
-                                    <col style="width: 12vh">
-                                    <col style="max-width: 17vh">
-                                </colgroup>
-                                <thead></thead>
-                                <tr class="bg1">
-                                    <td></td>
-                                </tr>
-                                <tr class="bg2">
-                                    <td style="min-width: 12vh"></td>
-                                </tr>
-                                <tr class="top">
-                                    <td class="name left" style="min-width: 10vh">R-Bar</td>
-                                    <td class="stat" style="min-width: 15vh"></td>
-                                </tr>
-                                <tr class="clone content">
-                                    <td class="name left">R-Bar</td>
-                                    <td class="stat rbar"></td>
-                                </tr>
-                                <tr class="clone content">
-                                    <td class="name left">UCL</td>
-                                    <td class="stat uclr"></td>
-                                </tr>
-                                <tr class="clone content">
-                                    <td class="name left">LCL</td>
-                                    <td class="stat lclr"></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="spc_tip" class="grid1 vertical" hidden>
-            <table class="grid">
-                <colgroup>
-                    <col style="width: 17vh">
-                    <col style="width: 33vh">
-                </colgroup>
-                <thead></thead>
-                <tr class="bg2">
-                    <td style="min-width: 17vh"></td>
-                </tr>
-                <tr class="clone content">
-                    <td class="left" style="min-width: 15vh">Data:</td>
-                    <td class="stat data" style="min-width: 25vh"></td>
-                </tr>
-                <tr class="clone content">
-                    <td class="left">Sample:</td>
-                    <td class="stat sample"></td>
-                </tr>
-                <tr class="clone content">
-                    <td class="left">Status:</td>
-                    <td class="stat status"></td>
-                </tr>
-                <tr class="clone content">
-                    <td class="left">Inspector:</td>
-                    <td class="stat inspector"></td>
-                </tr>
-                <tr class="clone content">
-                    <td class="left">Timestamp:</td>
-                    <td class="stat timestamp"></td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <div class="alpha login" hidden>
-        <div class="popup login section vertical bg">
-            <div class="display">Clock ID</div>
-            <div class="row section">
-                <div class="number clicky">1</div>
-                <div class="number clicky">2</div>
-                <div class="number clicky">3</div>
-            </div>
-            <div class="row section">
-                <div class="number clicky">4</div>
-                <div class="number clicky">5</div>
-                <div class="number clicky">6</div>
-            </div>
-            <div class="row section">
-                <div class="number clicky">7</div>
-                <div class="number clicky">8</div>
-                <div class="number clicky">9</div>
-            </div>
-            <div class="row section">
-                <div class="number clicky">0</div>
-                <div class="clear clicky">Clear</div>
-            </div>
-            <div class="accept clicky invalid">Accept</div>
         </div>
     </div>
     <div class="alpha input" hidden>
@@ -587,8 +437,13 @@
                 <div class="drawings2 section">
                     <div class="drawings section">
                         <div class="copy drawing">
+                            <div class="multiples section bg" hidden>
+                                <div class="scroll section vertical">
+                                    <div class="multiple clicky copy"></div>
+                                </div>
+                            </div>
                             <div class="data section vertical bg" hidden>
-                                <div class="display"></div>
+                                <input class="display" autocomplete="off" />
                                 <div class="clear clicky">Clear</div>
                                 <div class="row section">
                                     <div class="number clicky">1</div>
@@ -610,23 +465,25 @@
                                     <div class="number clicky">0</div>
                                     <div class="number clicky">-</div>
                                 </div>
-                                <div class="more clicky" hidden>More...</div>
                                 <div class="accept clicky invalid">Accept</div>
                                 <div class="cancel clicky">Cancel</div>
                             </div>
-                            <div class="clip section vertical">
+                            <div class="clip">
                                 <div class="loading" hidden>
                                     <div class="progress">
                                         <div>loading</div>
                                     </div>
                                 </div>
-                                <div class="scroll">
+                                <div class="gallery">
                                     <img class="pdf"></img>
                                     <div class="dims">
                                         <div class="copy dim">
                                             <div class="balloon" hidden></div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="section spotlight" hidden>
+                                    <div class="dimreq gdt clicky"></div>
                                 </div>
                             </div>
                         </div>
@@ -642,36 +499,39 @@
                     <div class="zoomin clicky">+</div>
                     <div class="zoomfit clicky">=</div>
                     <div class="zoomout clicky">-</div>
-                    <div class="serialize clicky" hidden>Serialize</div>
                 </div>
                 <div class="info2 section vertical">
                     <div class="sampleNo"></div>
                     <div class="loginName"></div>
                 </div>
+                <div class="input section" hidden>
+                    <div class="section vertical">
+                        <input class="display serial" placeholder="Serial Number" autocomplete="off">
+                        <div class="clicky attach invalid">Add Attachments</div>
+                        <input class="attaches" type="file" autocomplete="off" multiple="true" hidden>
+                    </div>
+                    <textarea class="display comments" placeholder="Comments" autocomplete="off"></textarea>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="alpha serialize" hidden>
-        <div class="popup serialize">
-            <div class="keyboard section">
+            <div class="keyboard section bg">
                 <div class="options section vertical">
-                    <div class="back"></div>
-                    <div class="caps"></div>
-                    <div class="shift"></div>
-                    <div class="accept">Accept</div>
+                    <div class="option clicky clear">Clear</div>
+                    <div class="option clicky caps">Shift</div>
+                    <div class="option clicky space">Space</div>
+                    <div class="option clicky close accept">Close</div>
                 </div>
                 <div class="letters section vertical">
                     <div class="row section">
-                        <div class="letter clicky">1</div>
-                        <div class="letter clicky">2</div>
-                        <div class="letter clicky">3</div>
-                        <div class="letter clicky">4</div>
-                        <div class="letter clicky">5</div>
-                        <div class="letter clicky">6</div>
-                        <div class="letter clicky">7</div>
-                        <div class="letter clicky">8</div>
-                        <div class="letter clicky">9</div>
-                        <div class="letter clicky">0</div>
+                        <div class="letter clicky" cap="!">1</div>
+                        <div class="letter clicky" cap="@">2</div>
+                        <div class="letter clicky" cap="#">3</div>
+                        <div class="letter clicky" cap="$">4</div>
+                        <div class="letter clicky" cap="%">5</div>
+                        <div class="letter clicky" cap="^">6</div>
+                        <div class="letter clicky" cap="&amp;">7</div>
+                        <div class="letter clicky" cap="*">8</div>
+                        <div class="letter clicky" cap="(">9</div>
+                        <div class="letter clicky" cap=")">0</div>
                     </div>
                     <div class="row section">
                         <div class="letter clicky">q</div>
@@ -706,17 +566,200 @@
                         <div class="letter clicky">m</div>
                     </div>
                 </div>
+                <div class="letters section vertical">
+                    <div class="row section">
+                        <div class="letter clicky" cap="_">-</div>
+                        <div class="letter clicky" cap="+">=</div>
+                    </div>
+                    <div class="row section">
+                        <div class="letter clicky" cap=":">;</div>
+                        <div class="letter clicky" cap="&quot;">'</div>
+                    </div>
+                    <div class="row section">
+                        <div class="letter clicky" cap="[">,</div>
+                        <div class="letter clicky" cap="]">.</div>
+                    </div>
+                    <div class="row section">
+                        <div class="letter clicky" cap="?">/</div>
+                        <div class="letter clicky" cap="|">\</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    <div class="alpha spc" hidden>
+        <div class="popup spc section bg">
+            <div class="s1">
+                <div class="q1 dimNo clicky"></div>
+                <div class="q2 dimReq gdt"></div>
+            </div>
+            <div class="s2">
+                <div class="q3">
+                    <div class="s4">
+                        <div class="q1">
+                            <svg id="spc_canvas1" viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
+                        </div>
+                        <div class="q2">
+                            <svg id="spc_canvas2" viewBox="0 0 93.75 100" preserveAspectRatio="xMinYMin meet"></svg>
+                        </div>
+                        <div class="q4 xbar clip">
+                            <div class="grid vertical">
+                                <div class="row head">
+                                    <div class="cell name left" style="width: 10vh">X-Bar</div>
+                                    <div class="cell stat" style="width: 15vh"></div>
+                                </div>
+                                <div class="row content clone">
+                                    <div class="cell name left" style="width: 10vh">X-Bar</div>
+                                    <div class="cell stat xbar" style="width: 15vh"></div>
+                                </div>
+                                <div class="row content clone">
+                                    <div class="cell name left" style="width: 10vh">CPK</div>
+                                    <div class="cell stat cpk" style="width: 15vh"></div>
+                                </div>
+                                <div class="row content clone">
+                                    <div class="cell name left" style="width: 10vh">PPK</div>
+                                    <div class="cell stat ppk" style="width: 15vh"></div>
+                                </div>
+                                <div class="row content clone">
+                                    <div class="cell name left" style="width: 10vh">UCL</div>
+                                    <div class="cell stat uclx" style="width: 15vh"></div>
+                                </div>
+                                <div class="row content clone">
+                                    <div class="cell name left" style="width: 10vh">LCL</div>
+                                    <div class="cell stat lclx" style="width: 15vh"></div>
+                                </div>
+                                <div class="row fill" style="width: 12vh"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="s4">
+                        <div class="q1">
+                            <svg id="spc_canvas3" viewBox="0 0 100 100" preserveAspectRatio="xMinYMin meet"></svg>
+                        </div>
+                        <div class="q2">
+                            <svg id="spc_canvas4" viewBox="0 0 93.75 100" preserveAspectRatio="xMinYMin meet"></svg>
+                        </div>
+                        <div class="q4 rbar clip">
+                            <div class="grid vertical">
+                                <div class="row head">
+                                    <div class="cell name left" style="width: 10vh">R-Bar</div>
+                                    <div class="cell stat" style="width: 15vh"></div>
+                                </div>
+                                <div class="row content clone">
+                                    <div class="cell name left" style="width: 10vh">R-Bar</div>
+                                    <div class="cell stat rbar" style="width: 15vh"></div>
+                                </div>
+                                <div class="row content clone">
+                                    <div class="cell name left" style="width: 10vh">UCL</div>
+                                    <div class="cell stat uclr" style="width: 15vh"></div>
+                                </div>
+                                <div class="row content clone">
+                                    <div class="cell name left" style="width: 10vh">LCL</div>
+                                    <div class="cell stat lclr" style="width: 15vh"></div>
+                                </div>
+                                <div class="row fill" style="width: 12vh"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="spc_tip" class="spc_tip clip" hidden>
+            <div class="grid vertical">
+                <div class="row content clone">
+                    <div class="cell left" style="width: 15vh">Data:</div>
+                    <div class="cell stat data" style="width: 25vh"></div>
+                </div>
+                <div class="row content clone">
+                    <div class="cell left" style="width: 15vh">Sample:</div>
+                    <div class="cell stat sample"></div>
+                </div>
+                <div class="row content clone">
+                    <div class="cell left" style="width: 15vh">Status:</div>
+                    <div class="cell stat status"></div>
+                </div>
+                <div class="row content clone">
+                    <div class="cell left" style="width: 15vh">Inspector:</div>
+                    <div class="cell stat inspector"></div>
+                </div>
+                <div class="row content clone">
+                    <div class="cell left" style="width: 15vh">Timestamp:</div>
+                    <div class="cell stat timestamp"></div>
+                </div>
+                <div class="row content clone">
+                    <div class="cell left" style="width: 15vh">S/N:</div>
+                    <div class="cell stat serial"></div>
+                </div>
+                <div class="row content clone">
+                    <div class="cell left" style="width: 15vh">Comments:</div>
+                    <div class="cell stat comment"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="alpha login" hidden>
+        <div class="popup login section vertical bg">
+            <input class="display" placeholder="Clock ID" autocomplete="off" />
+            <div class="row section">
+                <div class="number clicky">1</div>
+                <div class="number clicky">2</div>
+                <div class="number clicky">3</div>
+            </div>
+            <div class="row section">
+                <div class="number clicky">4</div>
+                <div class="number clicky">5</div>
+                <div class="number clicky">6</div>
+            </div>
+            <div class="row section">
+                <div class="number clicky">7</div>
+                <div class="number clicky">8</div>
+                <div class="number clicky">9</div>
+            </div>
+            <div class="row section">
+                <div class="number clicky">0</div>
+                <div class="clear clicky">Clear</div>
+            </div>
+            <div class="accept clicky invalid">Accept</div>
+        </div>
+    </div>
+    <div class="alpha quantity" hidden>
+        <div class="popup quantity section vertical bg">
+            <input class="display" placeholder="Part Count" autocomplete="off" />
+            <div class="row section">
+                <div class="number clicky">1</div>
+                <div class="number clicky">2</div>
+                <div class="number clicky">3</div>
+            </div>
+            <div class="row section">
+                <div class="number clicky">4</div>
+                <div class="number clicky">5</div>
+                <div class="number clicky">6</div>
+            </div>
+            <div class="row section">
+                <div class="number clicky">7</div>
+                <div class="number clicky">8</div>
+                <div class="number clicky">9</div>
+            </div>
+            <div class="row section">
+                <div class="number clicky">0</div>
+                <div class="clear clicky">Clear</div>
+            </div>
+            <div class="accept clicky invalid">Accept</div>
+        </div>
+    </div>
     <div class="alpha more" hidden>
-        <div class="popup more">
-
+        <div class="popup more section vertical bg">
+            <textarea class="display comments" placeholder="Comments" autocomplete="off"></textarea>
+            <input class="display serial" placeholder="Serial Number" autocomplete="off">
         </div>
     </div>
     <div class="alpha message" hidden>
-        <div class="popup message">
-
+        <div class="popup message section vertical bg">
+            <div class="text"></div>
+            <div class="options section" hidden>
+                <div class="accept clicky">Accept</div>
+                <div class="cancel clicky">Cancel</div>
+            </div>
         </div>
     </div>
 </body>

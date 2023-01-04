@@ -1,43 +1,52 @@
-const spc = {
+const spc_consts = {
     e2: 1.5 * mathjs.gamma(0.5),
     d2: 1.1283791670955123,
     d3: 0.8525122415123741,
     D3: 0,
     D4: 3.2665579081190517,
-    data: (arr, dim) => {
-        let out = {
-            x_bar: mathjs.mean(arr),
-            x_sig: mathjs.std(arr),
-            usl: dim["UpperTol"],
-            lsl: dim["LowerTol"]
-        }
-        out.mr = arr.map((e, i) => mathjs.abs(e - arr[i - 1])).splice(1);
-        out.r_bar = mathjs.mean(out.mr);
-        out.r_sig = mathjs.std(out.mr);
-        out.s_hat = out.r_bar / spc.d2;
-        out.zmin = {
-            /*
-            0: dim["Nominal"] - out.x_bar, // N/A
-            3: dim["Nominal"] - out.x_bar, // Basic
-            4: dim["Nominal"] - out.x_bar, // Reference
-            */
-            1: mathjs.min(dim["UpperTol"] - out.x_bar, out.x_bar - dim["LowerTol"]) + dim["Nominal"], // Tolerance
-            2: mathjs.min(dim["UpperTol"] - out.x_bar, out.x_bar - dim["LowerTol"]), // As Limit
-            5: out.x_bar - dim["LowerTol"], // MIN
-            6: dim["UpperTol"] - out.x_bar, // MAX
-        }[dim["TolType"]];
 
-        out.cpk = out.zmin / (3 * out.s_hat);
-        out.ppk = out.zmin / (3 * out.x_sig);
-        out.uclx = out.x_bar + spc.e2 * out.r_bar;
-        out.lclx = out.x_bar - spc.e2 * out.r_bar;
-        out.uclr = spc.D4 * out.r_bar;
-        out.lclr = spc.D3 * out.r_bar;
-        return out;
-    },
     pdf: (x, u, s) => {
         return (1 / (s * mathjs.sqrt(2 * mathjs.pi))) * mathjs.exp((-1 / 2) * mathjs.pow((x - u) / s, 2))
     }
+}
+
+const spc_data = (dim) => {
+    let results = dim.results
+        .sort((a, b) => new Date(a.get["InspectedDate"]) - new Date(b.get["InspectedDate"]))
+        .filter((r1, i, self) => r1 == self.findLast(r2 => r1.sample == r2.sample));
+    let arr = results.map(e => e.get["Data"]);
+    let mean = (dim.get["UpperTol"] + dim.get["LowerTol"]) / 2;
+    let out = {
+        x_bar: mathjs.mean(arr.length == 0 ? [mean] : arr),
+        x_sig: mathjs.std(arr.length == 0 ? [0] : arr),
+        usl: dim.get["UpperTol"],
+        lsl: dim.get["LowerTol"],
+        arr, results
+    }
+    out.mr = arr.map((e, i) => mathjs.abs(e - arr[i - 1])).splice(1);
+    out.r_bar = mathjs.mean(out.mr.length == 0 ? [0] : out.mr);
+    out.r_sig = mathjs.std(out.mr.length == 0 ? [0] : out.mr);
+    out.s_hat = out.r_bar / spc_consts.d2;
+    if (dim.is_gdt()) out.zmin = dim.get["UpperTol"] - out.x_bar
+    else out.zmin = {
+        /*
+        0: dim["Nominal"] - out.x_bar, // N/A
+        3: dim["Nominal"] - out.x_bar, // Basic
+        4: dim["Nominal"] - out.x_bar, // Reference
+        */
+        1: mathjs.min(dim.get["UpperTol"] - out.x_bar, out.x_bar - dim.get["LowerTol"]) + dim.get["Nominal"], // Tolerance
+        2: mathjs.min(dim.get["UpperTol"] - out.x_bar, out.x_bar - dim.get["LowerTol"]), // As Limit
+        5: out.x_bar - dim.get["LowerTol"], // MIN
+        6: dim.get["UpperTol"] - out.x_bar, // MAX
+    }[dim.get["TolType"]];
+
+    out.cpk = out.zmin / (3 * out.s_hat);
+    out.ppk = out.zmin / (3 * out.x_sig);
+    out.uclx = out.x_bar + spc_consts.e2 * out.r_bar;
+    out.lclx = out.x_bar - spc_consts.e2 * out.r_bar;
+    out.uclr = spc_consts.D4 * out.r_bar;
+    out.lclr = spc_consts.D3 * out.r_bar;
+    return out;
 }
 let colors = [
     "white", "white", "#ff0f0f", "#ff0f0f", "#7CC2FF"
@@ -46,34 +55,25 @@ let dashes = [
     0, 0, 5, 5, 0
 ];
 
-const draw_data = async (dim, results) => {
-    if (dim["LowerTol"] == dim["Nominal"] == 0) dim["TolType"] = 6;
-
+const spc_recent = (results) => {
+    return results.filter(r1 =>
+        r1 == results.findLast(r2 => r1.sample == r2.sample)
+    )
 }
 
-const draw_xplot = async (canvas, data) => {
-    let svg = d3.select(canvas);
-    let out = {
-        
-    }
-    out.zmin = {
-        1: mathjs.min(dim["UpperTol"] - out.x_bar, out.x_bar - dim["LowerTol"]) + dim["Nominal"], // Tolerance
-        2: mathjs.min(dim["UpperTol"] - out.x_bar, out.x_bar - dim["LowerTol"]), // As Limit
-        5: out.x_bar - dim["LowerTol"], // MIN
-        6: dim["UpperTol"] - out.x_bar, // MAX
-    }[dim["TolType"]];
+const draw_spc = async (dim, x_chart, x_hist, r_chart, r_hist, options = {}) => {
+    let calc = spc_data(dim);
+    let results = calc.results;
+    let charts = d3.selectAll($([x_chart[0], r_chart[0]]));
+    charts.data(["x_chart", "r_chart"].filter((e, i) => charts.nodes()[i]));
 
-}
+    let hists = d3.selectAll($([x_hist[0], r_hist[0]]));
+    hists.data(["x_hist", "r_hist"].filter((e, i) => hists.nodes()[i]));
 
+    let { no_hover, scale = 1, tip = $("#spc_tip") } = options;
 
-const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
-    let dim = results[0].dim;
-
-    d3.selectAll($([$(x_chart)[0], $(r_chart)[0], $(x_hist)[0], $(r_hist)[0]])).selectAll("*").remove();
-    (async () => {
-        let charts = d3.selectAll($([$(x_chart)[0], $(r_chart)[0]]));
-        charts.data(["x_chart", "r_chart"]);
-        charts.each(async function (chart_type, i) {
+    return all([
+        all(charts.each(async function (chart_type, i) {
             let svg = d3.select(this);
             if (!svg) return;
             let is_r = chart_type == "r_chart";
@@ -84,9 +84,9 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
             let lcl = is_r ? calc.lclr : calc.lclx;
             let bar = is_r ? calc.r_bar : calc.x_bar;
             let sig = is_r ? calc.r_sig : calc.x_sig;
-            let dist = ucl - bar;
+            let dist = mathjs.max(is_r ? ucl / 2 : ucl - bar, 0.000000001);
             let range =
-                is_r ? [-0.25 * ucl, 1.25 * ucl]
+                is_r ? [-0.5 * dist, 2.5 * dist]
                     : [bar - 1.5 * dist, bar + 1.5 * dist];
             let limit_data =
                 is_r ? [ucl, lcl, null, null, bar]
@@ -111,7 +111,7 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .attr("x2", 0)
                 .attr("y1", (d) => y(d))
                 .attr("y2", (d) => y(d))
-                .style("stroke-width", 0.5)
+                .style("stroke-width", 0.5 * scale)
                 .style("stroke-dasharray", (d, i) => dashes[i])
                 .style("stroke-dashoffset", 5)
                 .style("stroke", (d, i) => d === null ? "transparent" : colors[i]);
@@ -119,7 +119,7 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
             let path = svg.append("path")
                 .datum(plot)
                 .style("fill", "none")
-                .style("stroke-width", 1)
+                .style("stroke-width", 1 * scale)
                 .style("stroke", "#41a6ff")
                 .attr("d", d3.line()
                     .x(d => x(0))
@@ -132,7 +132,7 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .append("circle")
                 .attr("cx", d => x(0))
                 .attr("cy", d => y(bar))
-                .attr("r", 2)
+                .attr("r", 2 * scale)
                 .style("fill", "#7CC2FF")
                 .property("model", d => d.model);
             svg.property("circ", circ);
@@ -160,10 +160,10 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                     .x(d => x(d.x))
                     .y(d => y(d.y))
                 );
-            circ.transition()
+            await circ.transition()
                 .duration(500)
                 .ease(d3.easeBounce)
-                .attr("cy", d => y(d.y));
+                .attr("cy", d => y(d.y)).end();
 
             let line = svg.append("line")
                 .attr("x1", 0)
@@ -174,6 +174,7 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .style("stroke", "#00ffe7")
                 .style("opacity", 0)
 
+            if (no_hover) return;
             trackPointer({
                 move: (e) => {
                     let svgX = d3.pointer(e)[0];
@@ -188,35 +189,83 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                     line.attr("x1", svgX);
                     line.attr("x2", svgX);
                     line.style("opacity", 1);
-                    $("#spc_tip").css("left", e.pageX + 10);
-                    if (plotY > bar) {
-                        $("#spc_tip").css("top", "");
-                        $("#spc_tip").css("bottom", window.innerHeight - e.pageY + 30);
-                    } else {
-                        $("#spc_tip").css("top", e.pageY + 30);
-                        $("#spc_tip").css("bottom", "");
-                    }
 
                     let data = d3.select(point).data()[0];
+                    if (!data) return;
                     let result = data.model;
-                    $("#spc_tip .data").text(data.y.toFixed(4));
-                    $("#spc_tip .sample").text(result.sample.get["SerialNumber"]);
-                    $("#spc_tip .status").text(result.get["StatusText"]);
-                    $("#spc_tip .inspector").text(result.inspector.get["FirstName"] + " " + result.inspector.get["LastName"]);
-                    $("#spc_tip .timestamp").text($.format.date(result.get["InspectedDate"], "E MM/dd/yyyy hh:mma"));
-                    $("#spc_tip").show();
+
+                    tip.css("left", e.pageX + 10);
+                    if (plotY > bar) {
+                        tip.css("top", "");
+                        tip.css("bottom", window.innerHeight - e.pageY + 30);
+                    } else {
+                        tip.css("top", e.pageY + 30);
+                        tip.css("bottom", "");
+                    }
+
+                    tip.$(".data").span($.fixed(data.y, 3));
+                    tip.$(".sample").span(result.sample.get["SerialNumber"]);
+                    tip.$(".status").span(result.get["StatusText"]);
+                    tip.$(".inspector").span(result.inspector ?
+                        result.inspector?.get["FirstName"] + " " + result.inspector?.get["LastName"] : "");
+                    tip.$(".timestamp").span(result.get["InspectedDate"] ?
+                        $.format.date(result.get["InspectedDate"], "E MM/dd/yyyy h:mma") : "");
+                    
+                    tip.$(".serial").span(result.serial?.get["ERPID"]);
+                    tip.$(".serial").closest(".row").show(!!result.serial?.get["ERPID"]);
+                    tip.$(".comment").span(result.serial?.get["Comments"]);
+                    tip.$(".comment").closest(".row").show(!!result.serial?.get["Comments"]);
+                    tip.show();
+
+                    let cy = y.invert($(point).attr("cy"));
+                    let spread = cy - bar;
+                    let height = 0.5 * (dist + mathjs.abs(spread))
+                    dist = mathjs.max(is_r ? ucl / 2 : ucl - bar, 0.000000001, is_r ? cy / 2 : 0);
+                    range = is_r ? [-0.5 * dist, 2.5 * dist] :
+                        [mathjs.min(bar - dist - 0.5 * height, bar + spread - 0.5 * height, bar - 1.5 * dist),
+                            mathjs.max(bar + spread + 0.5 * height, bar + dist + 0.5 * height, bar + 1.5 * dist)]
+
+                    y = d3.scaleLinear()
+                        .domain(range)
+                        .range([100, 0]);
+
+                    circ.attr("cy", d => y(d.y));
+
+                    path.attr("d", d3.line()
+                        .x(d => x(d.x))
+                        .y(d => y(d.y))
+                    );
+
+                    limits.attr("y1", (d) => y(d))
+                        .attr("y2", (d) => y(d))
                 },
                 end: (e) => {
                     line.style("opacity", 0);
                     circ.style("fill", "#7CC2FF");
-                    $("#spc_tip").hide();
+                    tip.hide();
+
+                    dist = mathjs.max(is_r ? ucl / 2 : ucl - bar, 0.000000001);
+                    range =
+                        is_r ? [-0.5 * dist, 2.5 * dist]
+                            : [bar - 1.5 * dist, bar + 1.5 * dist];
+
+                    y = d3.scaleLinear()
+                        .domain(range)
+                        .range([100, 0]);
+
+                    circ.attr("cy", d => y(d.y));
+
+                    path.attr("d", d3.line()
+                        .x(d => x(d.x))
+                        .y(d => y(d.y))
+                    );
+
+                    limits.attr("y1", (d) => y(d))
+                        .attr("y2", (d) => y(d))
                 }
             }, svg)
-        });
-
-        let hists = d3.selectAll($([$(x_hist)[0], $(r_hist)[0]]));
-        hists.data(["x_hist", "r_hist"]);
-        hists.each(async function (chart_type, i) {
+        })),
+        all(hists.each(async function (chart_type, i) {
             let svg = d3.select(this);
             if (!svg) return;
             let is_r = chart_type == "r_hist";
@@ -226,11 +275,10 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
             let lcl = is_r ? calc.lclr : calc.lclx;
             let bar = is_r ? calc.r_bar : calc.x_bar;
             let sig = is_r ? calc.r_sig : calc.x_sig;
-            let dist = ucl - bar;
-            let height =
-                is_r ? ucl / 6 : dist / 3;
+            let dist = mathjs.max(is_r ? ucl / 2 : ucl - bar, 0.000000001);
+            let height = dist / 3;
             let range =
-                is_r ? [-0.25 * ucl, 1.25 * ucl]
+                is_r ? [-0.5 * dist, 2.5 * dist]
                     : [bar - 1.5 * dist, bar + 1.5 * dist];
             let limit_data =
                 is_r ? [ucl, lcl, null, null, bar]
@@ -239,8 +287,8 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 is_r ? results.map((model, i) => ({ x: i + 1, y: calc.mr[i - 1], model: model })).slice(1)
                     : results.map((model, i) => ({ x: i + 1, y: model.get["Data"], model: model }));
             let chart =
-                is_r ? d3.select(r_chart)
-                    : d3.select(x_chart);
+                is_r ? d3.select(r_chart[0])
+                    : d3.select(x_chart[0]);
 
             let length = plot.length;
             let hist = d3.histogram()
@@ -252,7 +300,7 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .domain(range)
                 .range([100, 0]);
             let x = d3.scaleLinear()
-                .domain([0, mathjs.max(d3.max(bins, d => d.length), spc.pdf(0, 0, sig) * length * dist / 3)])
+                .domain([0, mathjs.max(d3.max(bins, d => d.length), spc_consts.pdf(0, 0, sig) * length * height)])
                 .range([0, 80]);
 
             let domain = mathjs.range(lcl, ucl, 2 * dist / 50, true);
@@ -265,12 +313,12 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .attr("width", 0)
                 .attr("height", d => y(d.x0) - y(d.x1))
                 .style("fill", "#41a6ff")
-                .style("stroke-width", 0.5)
+                .style("stroke-width", 0.5 * scale)
                 .style("stroke", "#7CC2FF")
             let bell = svg.append("path")
                 .datum(domain._data)
                 .style("fill", "none")
-                .style("stroke-width", 0.5)
+                .style("stroke-width", 0.5 * scale)
                 .style("stroke", "#00ffe7")
                 .attr("d", d3.line()
                     .x(d => x(0))
@@ -285,7 +333,7 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .attr("x2", 0)
                 .attr("y1", (d) => y(d))
                 .attr("y2", (d) => y(d))
-                .style("stroke-width", 0.5)
+                .style("stroke-width", 0.5 * scale)
                 .style("stroke-dasharray", (d, i) => dashes[i])
                 .style("stroke-dashoffset", 5)
                 .style("stroke", (d, i) => d === null ? "transparent" : colors[i]);
@@ -306,13 +354,13 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .duration(500)
                 .ease(d3.easeBounce)
                 .attr("width", d => x(d.length));
-            bell.transition()
+            await bell.transition()
                 .duration(500)
                 .ease(d3.easeBounce)
                 .attr("d", d3.line()
-                    .x(d => x(spc.pdf(d, bar, sig) * length * dist / 3))
+                    .x(d => x(spc_consts.pdf(d, bar, sig) * length * height))
                     .y(d => y(d))
-                );
+                ).end();
 
             let line = svg.append("line")
                 .attr("x1", 0)
@@ -321,7 +369,9 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                 .attr("y2", 0)
                 .style("stroke-width", 0.5)
                 .style("stroke", "#00ffe7")
-                .style("opacity", 0)
+                .style("opacity", 0);
+
+            if (no_hover) return;
             trackPointer({
                 move: (e) => {
                     let svgX = d3.pointer(e)[0];
@@ -343,24 +393,14 @@ const draw_spc = async (results, calc, x_chart, x_hist, r_chart, r_hist) => {
                     line.attr("y1", svgY);
                     line.attr("y2", svgY);
                     line.style("opacity", 1);
-                    $("#spc_tip").css("left", e.pageX + 10);
-                    if (plotY > bar) {
-                        $("#spc_tip").css("top", "");
-                        $("#spc_tip").css("bottom", window.innerHeight - e.pageY + 30);
-                    } else {
-                        $("#spc_tip").css("top", e.pageY + 30);
-                        $("#spc_tip").css("bottom", "");
-                    }
-                    $("#spc_tip").toggleClass("hover", true);
                 },
                 end: (e) => {
                     let circ = chart.property("circ");
                     line.style("opacity", 0);
                     circ.style("fill", "#7CC2FF");
                     rect.style("fill", "#41a6ff");
-                    $("#spc_tip").toggleClass("hover", false);
                 }
             }, svg)
-        });
-    })();
+        }))
+    ])
 }

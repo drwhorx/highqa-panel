@@ -39,6 +39,7 @@ const samplize = (m, n) => {
 }
 
 const sample_qty = (letter, size) => {
+    if (!["A", "B", "C", "D", "E"].includes(letter)) return null;
     if (letter == "E") return 1;
     if (letter == "A") return size;
     if (size <= 8) return size;
@@ -56,4 +57,31 @@ const sample_qty = (letter, size) => {
         10000: { B: 150, C: 32, D: 32 },
     }
     return table[max][letter];
+}
+
+const sample_letter = (dim) => {
+    let upper = dim.get["UpperTol"];
+    let lower = dim.get["LowerTol"];
+    let nominal = dim.get["Nominal"];
+    let tol = mathjs.round(upper - lower, 7);   
+    if (dim.is_gdt()) {
+        return upper <= 0.001 ? "A" :
+            upper <= 0.003 ? "B" :
+            upper <= 0.010 ? "C" : "D";
+    }
+    if (dim.get["TypeText"] == "Surface Finish") {
+        return upper <= 4 ? "A" :
+            upper <= 10 ? "B" :
+            upper <= 32 ? "C" :
+            upper <= 125 ? "D" : "E";
+    }
+    if (dim.get["TolTypeText"] == "MIN" || dim.get["TolTypeText"] == "MAX") {
+        return "D"
+    }
+    if (dim.get["TypeText"] == "Angular") {
+        return tol <= 0.5 ? "C" : "D";
+    }
+    return tol <= 0.002 ? "A" :
+        tol <= 0.004 ? "B" :
+        tol <= 0.010 ? "C" : "D";
 }

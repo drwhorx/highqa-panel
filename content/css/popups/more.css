@@ -1,0 +1,23 @@
+.alpha.more {
+    padding-bottom: 32vh;
+}
+
+.popup.more {
+    transform: translateY(-15vh);
+    align-items: center;
+    padding: 2vh;
+    gap: 2vh;
+}
+
+.popup.more .comments,
+.popup.more .serial {
+    width: 50vh;
+    height: 3vh;
+    padding: 1vh;
+    font-size: 3vh;
+    overflow: auto;
+}
+
+.popup.more .comments {
+    height: 20vh;
+}

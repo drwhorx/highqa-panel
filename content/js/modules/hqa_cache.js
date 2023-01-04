@@ -1,373 +1,355 @@
-const tree = (queries, final) => {
+const task = (query) => {
     return {
-        queries: queries,
-        final: final,
-        token: null,
         promise: null,
+        token: null,
         cancel: function () { this.token = null },
-        run: function () {
-            let group = this;
-            var token = this.token = new Date();
-            let init;
-            for (let name in queries) {
-                let query = queries[name];
-                query.recur = async function () {
-                    await init;
-                    let res = {}; let out = {};
-                    for (let name in this.parents)
-                        res[name] = await this.parents[name].promise
-                    if (token == group.token)
-                        out = await query.run(res, () => token == group.token);
-                    if (token == group.token)
-                        return out;
-                }
-            }
-            init = (async () => {
-                for (let name in queries)
-                    queries[name].promise = queries[name].recur();
-            })();
-            return this.promise = final.promise;
+        run: function (...args) {
+            return this.promise = new Promise(async resolve => {
+                var token = this.token = new Date();
+                let res = await query(...args, () => token == this.token);
+                if (token != this.token) console.log("cancelled");
+                resolve(token == this.token ? res : "cancelled");
+            });
         }
     }
 }
-
-const filter = (source, arr) => arr.reduce((obj, key) => ({ ...obj, [key]: source[key] }), {});
 
 const groups = (length, size) =>
     Array.from({ length: mathjs.ceil(length / size) }, (_, i) => [i * size, i * size + size]);
 
-let get_jobs = {
-    run: async () => {
-        return (await API("jobs/list").pages())["Jobs"];
-    },
-}
-let get_parts = {
-    run: async () => {
-        return (await API("parts/list").pages())["Parts"];
-    },
-}
-let get_ops = {
-    run: async () => {
-        return (await API("procedures/list").pages())["Procedures"];
-    },
-}
-let get_companies = {
-    run: async () => {
-        return (await API("companies/list").pages())["Companies"];
-    },
-}
-let get_contacts = {
-    run: async () => {
-        return (await API("contacts/list").pages())["Contacts"];
-    },
+const clear = (arr) => {
+    if (arr) arr.splice(0, arr.length);
+    return arr;
 }
 
-let load_jobs = {
-    parents: { get_jobs, get_parts, get_companies },
-    run: ({ get_jobs, get_parts, get_companies }) => {
-        for (let res of get_companies) {
-            model.company[res["GUID"]] = models.company(res);
-        }
-        for (let res of get_parts) {
-            let part = model.part[res["GUID"]] = models.part(res);
-            part.customer = model.company[res["CustomerGUID"]];
-        }
-        for (let res of get_jobs) {
-            if (!model.part[res["PartGUID"]] || res["Status"] != 1) continue;
-            let job = model.job[res["GUID"]] = models.job(res);
-            let part = job.part = model.part[res["PartGUID"]];
-            part.job = job;
-        }
-        raw.jobs = Object.values(model.job);
-        raw.parts = Object.values(model.part);
-        raw.companies = Object.values(model.company);
-        return model.job;
-    },
+const unload = (arr, item) => {
+    let i = arr.indexOf(item);
+    if (i > -1) return arr.splice(i, 1);
 }
 
-let load_ops = {
-    parents: { get_ops },
-    run: ({ get_ops }) => {
-        for (let res of get_ops)
-            model.op[res["GUID"]] = models.op(res);
-        raw.ops = Object.values(model.op);
-        return model.op;
-    },
+const query_basic = async (valid) => {
+    let res = await all([
+        API("jobs/list").pages(),
+        API("parts/list").pages(),
+        API("companies/list").pages(),
+        API("contacts/list").pages()
+    ]);
+    if (!valid()) return;
+    let [get_jobs, get_parts, get_companies, get_contacts] = [
+        res[0]["Jobs"], res[1]["Parts"], res[2]["Companies"], res[3]["Contacts"]
+    ];
+    load_companies(get_companies);
+    load_contacts(get_contacts);
+    load_parts(get_parts);
+    load_jobs(get_jobs);
+    return valid();
 }
 
-const stage1 = tree({
-    get_parts,
-    get_jobs,
-    get_ops,
-    get_companies,
-    get_contacts,
-    load_jobs,
-    load_ops
-}, load_jobs);
-
-let get_mfgs = {
-    run: async () => {
-        let query = API("operations/list");
-        query.req["PartGUID"] = user.job.get["PartGUID"];
-        return (await query.pages())["Operations"];
-    },
-}
-let get_dims = {
-    run: async () => {
-        let query = API("dims/list");
-        query.req["PartGUID"] = user.job.get["PartGUID"];
-        return (await query.pages())["Dims"];
-    },
-}
-let get_drawings = {
-    run: async () => {
-        let query = API("drawings/list");
-        query.req["PartGUID"] = user.job.get["PartGUID"];
-        return (await query.pages())["Drawings"];
-    },
-}
-
-let load_files = {
-    parents: { get_drawings, load_ops },
-    run: async ({ get_drawings }, valid) => {
-        let pdfjsLib = window['pdfjs-dist/build/pdf'];
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "./js/lib/pdf.worker.js";
-
-        let guids = [];
-        for (let res of get_drawings) {
-            if (!guids.includes(res["DrawingFile"]))
-                guids.push(res["DrawingFile"]);
-        }
-        model.file = {};
-        await Promise.all(guids.map(async guid => {
-            let query1 = API("filestorage/token");
-            let query2 = API("filestorage/download");
-            query1.req["GUID"] = guid;
-            query2.req["Token"] = (await query1.send())["Token"];
-            if (!valid()) return;
-            let res = await query2.pdf();
-            if (!valid()) return;
-
-            let file = model.file[guid] = models.file(res);
-            let url = window.URL.createObjectURL(file.get);
-            file.pdf = await pdfjsLib.getDocument({ url, maxImageSize: 2147500037 }).promise;
-        }))
+const query_job = async (job, { do_drawings, do_holders }, valid) => {
+    job.part.ops = [];
+    job.part.dims = [];
+    job.part.drawings = [];
+    job.part.mfgs = {
+        mfg: {},
+        fin: {},
+        arr: []
+    };
+    job.lots = {
+        fpi: {},
+        mfg: {},
+        arr: []
+    };
+    job.ncrs = [];
+    job.samples = [];
+    let done_drawings;
+    if (do_drawings) done_drawings = (async () => {
+        let res = await job.part.get_drawings(valid);
         if (!valid()) return;
+        let { get_files, get_drawings } = res;
+        await load_files(get_files);
+        if (!valid()) return;
+        await load_drawings(get_drawings);
+    })();
+    let [get_ops, get_mfgs, get_lots, get_samples, get_ncrs] = await all([
+        job.part.get_ops(valid),
+        job.part.get_mfgs(valid),
+        job.get_lots(valid),
+        job.get_samples(valid),
+        job.get_ncrs(valid)
+    ]);
+    if (!valid()) return;
+    load_ops(get_ops);
+    load_lots(get_lots);
+    load_ncrs(get_ncrs);
+    let samples = load_samples(get_samples);
+    let [get_holders, get_results, get_dims] = await all([
+        do_holders ? all(samples.map(e => e.get_holders(valid))) : [],
+        all(samples.map(e => e.get_results(valid))),
+        job.part.get_dims(valid)
+    ]);
+    if (!valid()) return;
+    await done_drawings;
+    if (!valid()) return;
+    load_mfgs(get_mfgs);
+    load_dims(get_dims);
+    if (do_holders) load_holders(get_holders.flat());
+    load_results(get_results.flat());
+    return valid();
+}
 
-        model.drawing = {};
-        for (let res of get_drawings) {
-            let drawing = model.drawing[res["GUID"]] = models.drawing(res);
-            let file = model.file[res["DrawingFile"]];
-            drawing.file = file;
-            file.drawings.push(drawing);
-            
-            let canvas = $("<canvas>")[0];
-            await drawpdf(file.pdf, drawing.get["PdfPageNo"], canvas);
-            drawing.width = canvas.width;
-            drawing.height = canvas.height;
-            drawing.png = canvas.toDataURL("image/png");
-            delete canvas;
-        }
-        raw.files = Object.values(model.file);
-        return raw.drawings = Object.values(model.drawing);
-    },
-}
-let dim_ops = {
-    parents: { get_dims, get_ops },
-    run: async ({ get_dims }, valid) => {
-        await all(get_dims.map(async dim => {
-            let query = API("procedures/list");
-            query.req["DimGUID"] = dim["GUID"];
-            let op = (await query.send())["Procedures"][0]
-            if (!valid() || !op) return;
-            dim["ProcedureGUID"] = op["GUID"];
-            model.op[op["GUID"]].get = op;
-        }));
-    },
+const query_part = async (part, { do_drawings }, valid) => {
+    part.ops = [];
+    part.dims = [];
+    part.drawings = [];
+    part.mfgs = {
+        mfg: {},
+        fin: {},
+        arr: []
+    };
+    let done_drawings;
+    if (do_drawings) done_drawings = (async () => {
+        let res = await part.get_drawings(valid);
+        if (!valid()) return;
+        let { get_files, get_drawings } = res;
+        await load_files(get_files);
+        if (!valid()) return;
+        await load_drawings(get_drawings);
+    })();
+
+    let [get_ops, get_mfgs] = await all([
+        part.get_ops(valid),
+        part.get_mfgs(valid)
+    ]);
+    if (!valid()) return;
+    load_ops(get_ops);
+    let get_dims = await part.get_dims(valid);
+    if (!valid()) return;
+    await done_drawings;
+    if (!valid()) return;
+    load_mfgs(get_mfgs);
+    load_dims(get_dims);
+    return valid();
 }
 
-let get_lots = {
-    run: async (_, valid) => {
-        let query = API("lots/list");
-        query.req["JobGUID"] = user.job.get["GUID"];
-        return (await query.pages(valid))["Lots"];
-    },
+const load_companies = function (get_companies) {
+    return get_companies.map(res => 
+        models.company(res)
+    )
 }
-let get_samples = {
-    run: async (_, valid) => {
-        let query = API("samples/list");
-        query.req["JobGUID"] = user.job.get["GUID"];
-        return (await query.pages(valid))["Samples"];
-    },
+
+const load_contacts = function (get_contacts) {
+    return get_contacts.map(res => 
+        models.contact(res)
+    )
 }
-let get_holders = {
-    parents: { get_samples, load_ops },
-    run: async ({ get_samples }, valid) => {
-        let samples = get_samples
-            .filter(e => e["Results"] > 0)
-            .sort((a, b) => b["Results"] - a["Results"])
-        let res = await all(samples.map(async sample => {
-            let query = API("placeholders/list");
-            query.req["SampleGUIDs"] = sample["GUID"];
-            return (await query.pages(valid))["Placeholders"];
-        }));
-        return res.flat();
-    },
+
+const load_parts = function (get_parts) {
+    return get_parts.map(res => {
+        let part = models.part(res);
+        part.customer = model.company[res["CustomerGUID"]];
+        return part;
+    });
 }
-let get_results = {
-    parents: { get_samples },
-    run: async ({ get_samples }, valid) => {
-        let samples = get_samples
-            .filter(e => e["Results"] > 0)
-            .sort((a, b) => b["Results"] - a["Results"])
-        let nums = [1, 2, 3, 4];
-        let res = await all(samples.map(async sample => {
-            return await all(nums.map(async num => {
-                let query = API("results/list");
-                query.req["Status"] = num;
-                query.req["SampleGUID"] = sample["GUID"];
-                return (await query.pages(valid))["Results"];
-            }));
-        }));
-        return res.flat(2);
-    },
+
+const load_jobs = function (get_jobs) {
+    return get_jobs.map(res => {
+        if (!model.part[res["PartGUID"]] || res["Status"] != 1) return;
+        let job = models.job(res);
+        let part = job.part = model.part[res["PartGUID"]];
+        part.job = job;
+        return job;
+    });
 }
-let get_ncrs = {
-    run: async (_, valid) => {
-        let query = API("ncr/list");
-        query.req["JobGUID"] = user.job.get["GUID"];
-        return (await query.pages(valid))["NCRs"];
+
+const load_ops = function (get_ops) {
+    return get_ops.map(res => {
+        let op = models.op(res);
+        let part = op.part = model.part[res["PartGUID"]];
+        part?.ops.push(op);
+        return op;
+    });
+}
+
+const load_dims = function (get_dims) {
+    return get_dims.map(res => {
+        let dim = models.dim(res);
+        let op = dim.op = model.op[res["ProcedureGUID"]];
+        let mfg = dim.mfg = model.mfg[res["OperationGUID"]];
+        let drawing = dim.drawing = model.drawing[res["DrawingGUID"]]
+        let part = dim.part = mfg?.part;
+        op?.dims.push(dim);
+        mfg?.dims.push(dim);
+        part?.dims.push(dim);
+        drawing?.dims.push(dim);
+        return dim;
+    });
+}
+
+const load_mfgs = function (get_mfgs) {
+    return get_mfgs.map(res => {
+        let mfg = models.mfg(res);
+        let part = mfg.part = model.part[res["PartGUID"]];
+        if (part && (res["Title"] == "IN PROCESS" || res["Description"] == "IN PROCESS"))
+            part.mfgs.mfg = mfg;
+        if (part && res["Title"] == "FINISH")
+            part.mfgs.fin = mfg;
+        part?.mfgs.arr.push(mfg);
+        return mfg;
+    });
+}
+
+const load_files = function (get_files) {
+    for (let res of get_files) {
+        let file = models.file(res);
+        let part = file.part = model.part[res["PartGUID"]];
+        let result = file.result = model.result[res["ResultGUID"]];
+        part?.files.push(file);
+        result?.files.push(file);
     }
+
+    return all(get_files.map(async res => {
+        let file = model.file[res["GUID"]];
+        if (res["ResultGUID"]) return file;
+        let url = window.URL.createObjectURL(file.get["Blob"]);
+        let pdf = await pdfjsLib.getDocument({ url, maxImageSize: 2147500037 }).promise;
+        file.pdf = pdf;
+        return file;
+    }));
 }
 
-const stage2 = tree({
-    get_mfgs,
-    get_dims,
-    get_drawings,
-    load_files,
-    dim_ops,
-    get_lots,
-    get_samples,
-    get_holders,
-    get_results,
-    get_ncrs
-}, load_ops);
-
-let load_results = {
-    
-}
-
-let load_job = {
-    parents: {
-        get_mfgs, get_dims, dim_ops,
-        get_lots, get_samples, get_holders, get_results, get_ncrs, get_contacts
-    },
-    run: async ({
-        get_mfgs, get_dims, dim_ops,
-        get_lots, get_samples, get_holders, get_results, get_ncrs, get_contacts
-    }) => {
-        model.contact = {};
-        model.mfg = {};
-        model.dim = {};
-        model.lot = {};
-        model.sample = {};
-        model.holder = {};
-        model.result = {};
-        model.ncr = {};
-
-        for (let op of raw.ops) {
-            op.dims = [];
-        }
-
-        for (let res of get_contacts) {
-            model.contact[res["GUID"]] = models.contact(res);
-        }
-
-        let part = user.job.part;
-        part.job = user.job;
-
-        for (let res of get_mfgs) {
-            let mfg = model.mfg[res["GUID"]] = models.mfg(res);
-            mfg.part = part;
-            if (res["Title"].trim() == "IN PROCESS")
-                part.mfgs.mfg = mfg;
-            if (res["Title"].trim() == "FINISH")
-                part.mfgs.fin = mfg;
-        }
-
-        for (let res of get_dims) {
-            let dim = model.dim[res["GUID"]] = models.dim(res);
-            let op = dim.op = model.op[res["ProcedureGUID"]];
-            let mfg = dim.mfg = model.mfg[res["OperationGUID"]];
-            if (op) op.dims.push(dim);
-            if (mfg) mfg.dims.push(dim);
-            dim.part = part;
-        }
-
-        for (let res of get_lots) {
-            let lot = model.lot[res["GUID"]] = models.lot(res);
-            lot.job = user.job;
-            if (res["Number"].trim() == user.job.get["Number"].trim())
-                user.job.lots.mfg = lot;
-            if (res["Number"].includes("FPI"))
-                user.job.lots.fpi = lot;
-        }
-
-        for (let res of get_samples) {
-            let sample = model.sample[res["GUID"]] = models.sample(res);
-            let lot = sample.lot = model.lot[res["LotGUID"]];
-            lot.samples.push(sample);
-        }
-
-        for (let res of get_holders) {
-            let holder = model.holder[res["GUID"]] = models.holder(res);
-            let sample = holder.sample = model.sample[res["SampleGUID"]];
-            let dim = holder.dim = model.dim[res["DimGUID"]];
-            let mfg = holder.mfg = dim.mfg;
-            let lot = holder.lot = sample.lot;
-            sample.holders.push(holder);
-            dim.holders.push(holder);
-            mfg.holders.push(holder);
-            lot.holders.push(holder);
-        }
-
-        for (let res of get_ncrs) {
-            model.ncr[res["GUID"]] = models.ncr(res);
-        }
-
-        for (let res of get_results) {
-            let result = model.result[res["GUID"]] = models.result(res);
-            let sample = result.sample = model.sample[res["SampleGUID"]];
-            let dim = result.dim = model.dim[res["DimGUID"]];
-            let mfg = result.mfg = dim.mfg;
-            let lot = result.lot = sample.lot;
-            result.inspector = model.contact[res["MeasuredByGUID"]];
-            let serial = model.ncr[res["ResNo"]];
-            if (serial) {
-                result.serial = serial;
-                serial.result = result;
-                result.inspector = model.contact[serial.get["CreatedByGUID"]];
-                result.get["InspectedDate"] = serial.get["Number"];
-            }
-            sample.results.push(result);
-            dim.results.push(result);
-            mfg.results.push(result);
-            lot.results.push(result);
-        }
-
-        raw.contacts = Object.values(model.contact);
-        raw.mfgs = Object.values(model.mfg);
-        raw.dims = Object.values(model.dim);
-        raw.lots = Object.values(model.lot);
-        raw.samples = Object.values(model.sample);
-        raw.holders = Object.values(model.holder);
-        raw.results = Object.values(model.result);
-        raw.serials = Object.values(model.serial);
-
-        return raw;
+const load_drawings = function (get_drawings) {
+    for (let res of get_drawings) {
+        let drawing = models.drawing(res);
+        let file = drawing.file = model.file[res["DrawingFile"]];
+        let part = drawing.part = file.part;
+        file?.drawings.push(drawing);
+        part?.drawings.push(drawing);
     }
+
+    return all(get_drawings.map(async res => {
+        let drawing = model.drawing[res["GUID"]];
+        let canvas = $("<canvas>")[0];
+        let page = await drawing.file.pdf.getPage(+drawing.get["PdfPageNo"]);
+        let context = canvas.getContext('2d');
+        let viewport = page.getViewport({ scale: 4 / 3 });
+        drawing.width = canvas.width = viewport.width;
+        drawing.height = canvas.height = viewport.height;
+        try {
+            await page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise;
+        } catch (err) {
+        }
+        drawing.png = canvas.toDataURL("image/png");
+        delete canvas;
+        return drawing;
+    }));
 }
 
-const stage3 = tree({
-    load_job
-}, load_job);
+const load_lots = function (get_lots) {
+    return get_lots.map(res => {
+        let lot = models.lot(res);
+        let job = lot.job = model.job[res["JobGUID"]];
+        if (job && res["Number"].trim() == job.get["Number"].trim())
+            job.lots.mfg = lot;
+        if (job && res["Number"].includes("FPI"))
+            job.lots.fpi = lot;
+        job?.lots.arr.push(lot);
+        return lot;
+    });
+}
+
+const load_samples = function (get_samples) {
+    return get_samples.map(res => {
+        let sample = models.sample(res);
+        let lot = sample.lot = model.lot[res["LotGUID"]];
+        let job = sample.job = lot.job;
+        lot?.samples.push(sample);
+        job?.samples.push(sample);
+        return sample;
+    });
+}
+
+const load_ncrs = function (get_ncrs) {
+    return get_ncrs.map(res => {
+        let ncr = models.ncr(res);
+        let job = ncr.job = model.job[res["JobGUID"]];
+        job?.ncrs.push(ncr);
+        return ncr;
+    });
+}
+
+const load_holders = function (get_holders) {
+    return get_holders.map(res => {
+        let holder = models.holder(res);
+        let sample = holder.sample = model.sample[res["SampleGUID"]];
+        let dim = holder.dim = model.dim[res["DimGUID"]];
+        let mfg = holder.mfg = dim?.mfg;
+        let lot = holder.lot = sample?.lot;
+        let job = holder.job = lot?.job;
+        sample?.holders.push(holder);
+        dim?.holders.push(holder);
+        mfg?.holders.push(holder);
+        lot?.holders.push(holder);
+        job?.holders.push(holder);
+        return holder;
+    });
+}
+
+const load_results = function (get_results) {
+    return get_results.map(res => {
+        let result = models.result(res);
+        let sample = result.sample = model.sample[res["SampleGUID"]];
+        let dim = result.dim = model.dim[res["DimGUID"]];
+        let mfg = result.mfg = dim.mfg;
+        let lot = result.lot = sample.lot;
+        let job = result.job = lot.job;
+        let serial = model.ncr[res["ResNo"]] || model.ncr[res["Comment"]];
+        if (serial) {
+            result.serial = model.serial[res["ResNo"]] = serial;
+            serial.result = result;
+            res["MeasuredByGUID"] = serial.get["CreatedByGUID"];
+            res["InspectedDate"] = serial.get["Number"];
+        }
+        result.inspector = model.contact[res["MeasuredByGUID"]];
+        sample?.results.push(result);
+        dim?.results.push(result);
+        mfg?.results.push(result);
+        lot?.results.push(result);
+        job?.results.push(result);
+        return result;
+    });
+}
+
+const unload_results = function (results) {
+    return results.map(result => {
+        unload(result.sample?.results, result);
+        unload(result.dim?.results, result);
+        unload(result.mfg?.results, result);
+        unload(result.lot?.results, result);
+        unload(result.job?.results, result);
+        delete model.result[result.get["GUID"]];
+    });
+}
+
+const unload_files = function (files) {
+    return files.map(file => {
+        unload(file.result?.files, file);
+        unload(file.part?.files, file);
+        file.drawings.map(e => e.file = null);
+        delete model.file[file.get["GUID"]];
+    })
+}
+
+const await_file = async (input, valid) => {
+    return await new Promise(resolve => {
+        var int;
+        input.one("change", (e) =>{
+            resolve(valid() && e.target.files);
+        }).trigger("click");
+        int = setInterval(() =>
+            !valid() ? resolve(clearInterval(int)) : null
+        , 300);
+    });
+}

@@ -15,7 +15,7 @@ const test = async () => {
     }
 
     samples = mfg.samples.map(e => e.get)
-        .sort((a, b) => a["SerialNumber"].slice(2) - b["SerialNumber"].slice(2));
+        .sort((a, b) => a["SerialNumber"].slice(1) - b["SerialNumber"].slice(1));
     for (let dim of dims) {
         let qty = sample_qty(dim.get["TolClass"], samples.length) || parseInt(dim.get["TolClass"]);
         if (!qty) return;
@@ -29,30 +29,15 @@ const test = async () => {
 }
 
 const test2 = async () => {
-    let unzip = new JSZip();
-    let parse = new DOMParser();
-    let zip = await unzip.loadAsync($("#debug1").prop("files")[0]);
-    let dims = parse.parseFromString(await folder.files["Dims.xml"].async("text"), "text/xml");
-    let part = parse.parseFromString(await folder.files["Parts.xml"].async("text"), "text/xml");
+    let xdfx = await new XDFX($("#debug1").prop("files")[0]);
+    console.log(await xdfx.write())
+    //let dims = parse.parseFromString(await folder.files["Dims.xml"].async("text"), "text/xml");
 }
-
-$.easing.easeBounce = d3.easeBounce;
-$.fn.extend({
-    pickClass: function (arr) {
-        return arr.filter(e => this.hasClass(e))[0];
-    },
-    show: function () {
-        return this.removeAttr("hidden")
-    },
-    hide: function () {
-        return this.prop("hidden", true)
-    }
-})
 
 const test3 = async () => {
     ui.input.scale = 1;
     ui.input.drawings.$(".clone").remove();
-    let drawings = raw.drawings.sort((a, b) =>
+    let drawings = raw(model.drawing).sort((a, b) =>
         a.get["Title"].localeCompare(b.get["Title"])
         || a.get["PdfPageNo"] - b.get["PdfPageNo"]);
     for (let drawing of drawings) {
@@ -74,9 +59,44 @@ const test3 = async () => {
         }
         ui.input.drawings.append(dupe1);
     }
-    ui.prompts.open("input");
+    ui.prompts.open(ui.prompts.input);
 }
 
+const test4 = async () => {
+    let res = (await API("ncr/list").pages())["NCRs"];
+    console.log(res);
+    let ser = res.filter(e => {
+        try {
+            return new Date(e["Number"]).toHighQADate() == e["Number"]
+                && e["CreationDate"] === null
+        } catch (e) {}
+    });
+    let done = await all(ser.map(async one => {
+        let query = API("ncr/set");
+        query.req["InputNCR"] = {
+            "GUID": one["GUID"],
+            "JobGUID": one["JobGUID"],
+            "LotGUID": one["LotGUID"],
+            "Number": one["Number"],
+            "Status": one["Status"],
+            "CreationDate": one["Number"],
+            "CreatedByGUID": one["CreatedByGUID"],
+            "ResponseDate": one["ResponseDate"],
+            "AssignedToGUID": one["AssignedToGUID"],
+            "WorkCellGUID": one["WorkCellGUID"],
+            "InspCenterGUID": one["InspCenterGUID"],
+            "BarcodeID": one["BarcodeID"],
+            "ERPID": one["ERPID"],
+            "Comments": one["Comments"]
+        };
+        let oof;
+        try {
+            oof = await query.send();
+        } catch (e) {};
+        return oof;
+    }));
+    console.log(done.map(e => e && e["OutputNCR"]));
+}
 
 const drawpdf = async (pdf, pageNo, canvas) => {
     let page = await pdf.getPage(pageNo);

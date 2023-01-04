@@ -1,93 +1,142 @@
-.grid {
-    overflow: auto;
-    border-collapse: separate;
-    border-spacing: 0;
-    table-layout: fixed;
-    width: 100%;
-}
-.grid1 {
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-}
-.grid1.vertical {
-    overflow-x: hidden;
-}
-.grid2 {
-    width: 100%;
-    height: 100%;
+.clip {
     overflow: hidden;
-    position: relative;
     border-radius: 1vh;
-}
-.grid tr {
-    line-height: 4.5vh;
-}
-.grid tr.top {
-    z-index: 1;
-    top: 0;
-    position: sticky;
-    box-shadow: 0 0 1vh #050505;
-}
-.grid1.dohover .content:hover td {
-    background-color: #777777;
+    position: relative;
 }
 
-.grid .content td {
+.grid {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    height: 100%;
+}
+
+.grid.vertical {
+    overflow-x: hidden;
+}
+
+.grid > .row {
+    display: flex;
+    flex-direction: row;
+    min-width: fit-content;
+    overflow-y: clip;
+}
+.grid > .row.abs {
+    position: absolute;
+    height: 100%;
+}
+.grid > .row.head {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    box-shadow: 0 0 1vh #050505;
+}
+.grid > .row.head,
+.grid > .row.content {
+    min-height: 4.5vh;
+}
+.grid > .row > .cell span {
+    overflow: hidden;
+    transition: background-color 0.2s;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+.grid > .row > .cell {
+    display: flex;
     transition: background-color 0.2s;
     background-color: #555555;
-}
-.grid td {
     font-size: 2.5vh;
     line-height: 4.5vh;
     text-align: left;
     padding: 0;
     padding-left: 2vh;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
 }
-.grid .bg1 td,
-.grid td.left,
-.grid .bg2 {
-    background-color: #444444;
-}
-.grid td.left {
+
+.grid > .row > .cell.left {
     left: 0;
     position: sticky;
+    background-color: #444444;
 }
-.grid tr.top td.left {
+
+.grid > .row .cell.right {
+    padding-left: 0;
+    padding-right: 2vh;
+    text-align: right;
+    justify-content: right;
+}
+
+.grid > .row.head > .cell.right > input {
+    text-align: right;
+}
+
+.grid > .row .cell.center {
+    padding-left: 1vh;
+    padding-right: 1vh;
+    text-align: center;
+    justify-content: center;
+}
+
+.grid > .row.head > .cell.center > input {
+    text-align: center;
+}
+
+.grid > .row.fill {
+    position: sticky;
+    left: 0;
+    flex-grow: 1;
+    background-color: #444444;
+}
+.grid > .row.fill::after,
+.grid > .row > .cell.left::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 200%;
+    top: -50%;
+    left: 0;
+    z-index: -1;
+    box-shadow: 0 0 1vh #050505;
+}
+
+.grid > .row > .cell.left > .cell {
+    background-color: transparent;
+}
+
+.grid.hover > .content:hover > .cell {
+    background-color: #777777;
+}
+
+.grid.hover > .content > .cell:hover span {
+    /* z-index: 1; */
+}
+
+.grid > .row.head > .cell {
+    background-color: #444444;
+}
+
+.grid > .row.head > .cell.left {
+    z-index: 1;
     background-color: #333333;
 }
 
-.grid .bg1 {
-    position: absolute;
-    width: 100%;
-}
-.grid .bg2 {
-    position: absolute;
-    height: 100%;
-}
-.grid .bg1 td {
-    position: sticky;
-    top: 0;
-    width: 100%;
-    display: block;
+.grid > .row.head > .cell > input {
     padding: 0;
-    height: 4.5vh;
-}
-.grid .bg2 td {
-    position: sticky;
-    left: 0;
-    height: 100%;
-    display: block;
-    padding: 0;
-    box-shadow: 0 0 1vh #050505;
-}
-.grid td.gdt {
-    font-size: 3vh;
+    border: 0;
+    width: 100%;
+    font-size: 2.5vh;
+    background-color: transparent;
 }
 
-.shadow {
-    box-shadow: 0 0 1vh #1D1D1D;
+.grid > .row.head > .cell > input::placeholder {
+    color: white;
+    opacity: 1;
+}
+
+.grid > .row.head > .cell > input:focus::placeholder {
+    opacity: 0.5;
+}
+
+.grid .cell.gdt {
+    font-size: 3vh;
 }

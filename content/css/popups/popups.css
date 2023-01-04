@@ -17,27 +17,18 @@
     overflow-y: auto;
     overflow-x: hidden;
 }
-.popup.info {
-    width: 100vh;
-    height: 70vh;
+.message.popup {
+    font-size: 3vh;
+    padding: 2vh;
+    gap: 2vh;
 }
-.popup.edit {
-    width: 50vh;
-    height: 22.5vh;
+.message.popup .options {
+    justify-content: end;
+    gap: 2vh
 }
-.popup.seri1 {
-    width: 100vh;
-    height: 70vh;
+.message.popup .clicky {
+    padding: 1vh;
 }
-.popup.seri2 {
-    width: 30vh;
-    height: 70vh;
-}
-.popup.spc {
-    min-width: 147vh;
-    max-width: 147vh;
-    height: 72vh;
-}
-body > .loading .progress {
-    top: 4.25vh;
+#title > .loading .progress {
+    top: 1.75vh;
 }

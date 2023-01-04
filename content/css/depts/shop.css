@@ -1,0 +1,79 @@
+#console > .shop .info1 {
+    flex-direction: column;
+    padding: 1vh;
+    gap: 1vh;
+}
+#console > .shop .info1 .pdf1 {
+    height: 59vh;
+    box-shadow: 0 0 2vh #101010 inset;
+    overflow: hidden;
+    border-radius: 1vh;
+    display: flex;
+}
+#console > .shop .info1 div.pdf {
+    width: 0;
+    height: 59vh;
+    padding: 0 46.5vh;
+    gap: 5vh;
+    display: flex;
+    overflow: auto;
+    position: relative;
+    border-radius: 1vh;
+    scroll-snap-type: x mandatory;
+}
+#console > .shop .info1 img.pdf {
+    height: 49vh;
+    border-radius: 1vh;
+    margin: auto 0;
+    box-shadow: 0 0 2vh #101010;
+    scroll-snap-align: center;
+}
+#console > .shop .info1 .loading {
+    height: 4vh;
+    margin: auto;
+}
+
+#console > .shop .info1 .header {
+    display: flex;
+    justify-content: space-around;
+}
+#console > .shop .info1,
+#console > .shop .info2 {
+    font-size: 3vh;
+}
+
+#console > .shop .info2 .partNo,
+#console > .shop .info2 .opName {
+    font-size: 2.5vh;
+}
+
+#console > .shop .info2 .clicky {
+    line-height: 6vh;
+    height: 6vh;
+    width: 25vh;
+}
+
+#console > .shop .info2 {
+    flex-direction: column;
+    align-items: center;
+    padding: 2vh;
+    gap: 1.5vh;
+}
+#console > .shop .info2 > .section {
+    align-items: center;
+}
+
+#console > .shop .ops {
+    width: 50vh;
+}
+#console > .shop .ops .row.active .left::before {
+    content: '';
+    position: absolute;
+    left: 15vh;
+    width: 2vh;
+    height: 100%;
+    background-color: #59d45f;
+}
+#console > .shop .jobs {
+    width: 115vh;
+}
