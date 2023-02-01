@@ -1,75 +1,11 @@
-const test = async () => {
-    let job = user.job;
-    let part = job.part;
-    let fpi = job.lots.fpi;
-    let mfg = job.lots.mfg;
-    let dims = part.mfgs.mfg.dims;
-    let set = API("samples/set");
-
-    samples = fpi.samples.map(e => e.get["GUID"]);
-    for (let dim of dims) {
-        let create = API("placeholders/create");
-        create.req["DimGUID"] = dim.get["GUID"];
-        create.req["SampleGUIDs"] = samples.join(",")
-        await create.send();
-    }
-
-    samples = mfg.samples.map(e => e.get)
-        .sort((a, b) => a["SerialNumber"].slice(1) - b["SerialNumber"].slice(1));
-    for (let dim of dims) {
-        let qty = sample_qty(dim.get["TolClass"], samples.length) || parseInt(dim.get["TolClass"]);
-        if (!qty) return;
-        let plan = samplize(qty, samples.length).map(e => samples[e]["GUID"]);
-        let create = API("placeholders/create");
-        create.req["DimGUID"] = dim.get["GUID"];
-        create.req["SampleGUIDs"] = plan.join(",");
-        await create.send();
-    }
-    console.log("done");
-}
-
-const test2 = async () => {
-    let xdfx = await new XDFX($("#debug1").prop("files")[0]);
-    console.log(await xdfx.write())
-    //let dims = parse.parseFromString(await folder.files["Dims.xml"].async("text"), "text/xml");
-}
-
-const test3 = async () => {
-    ui.input.scale = 1;
-    ui.input.drawings.$(".clone").remove();
-    let drawings = raw(model.drawing).sort((a, b) =>
-        a.get["Title"].localeCompare(b.get["Title"])
-        || a.get["PdfPageNo"] - b.get["PdfPageNo"]);
-    for (let drawing of drawings) {
-        let dupe1 = ui.input.drawings.copy.dupe();
-        dupe1.$("img").attr("src", drawing.png);
-        for (let dim of user.op.dims) {
-            let dupe2 = dupe1.$(".copy.dim").dupe();
-            dupe2.prop("model", dim);
-            let coords = dim.get["ShapeCenter"].split(",");
-            let size = dim.get["ShapePoints"].split(",");
-            let factor = 58.5 / drawing.height;
-            dupe2.css({
-                left: (coords[0] * factor + 3.9) + "vh",
-                top: (coords[1] * factor + 3.9) + "vh",
-                width: (size[0] * factor) + "vh",
-                height: (size[1] * factor) + "vh"
-            })
-            dupe1.$(".dims").append(dupe2)
-        }
-        ui.input.drawings.append(dupe1);
-    }
-    ui.prompts.open(ui.prompts.input);
-}
-
-const test4 = async () => {
+const test1 = async () => {
     let res = (await API("ncr/list").pages())["NCRs"];
     console.log(res);
     let ser = res.filter(e => {
         try {
             return new Date(e["Number"]).toHighQADate() == e["Number"]
                 && e["CreationDate"] === null
-        } catch (e) {}
+        } catch (e) { }
     });
     let done = await all(ser.map(async one => {
         let query = API("ncr/set");
@@ -92,10 +28,75 @@ const test4 = async () => {
         let oof;
         try {
             oof = await query.send();
-        } catch (e) {};
+        } catch (e) { };
         return oof;
     }));
     console.log(done.map(e => e && e["OutputNCR"]));
+}
+
+const test2 = async () => {
+    let ncrs = (await all(
+        raw(model.job).map(e => e.get_ncrs(() => true))
+    )).flat(2).filter(e => {
+        try {
+            return new Date(e["Number"]).toHighQADate().slice(0, -6) == e["Number"].slice(0, -6)
+        } catch (e) { }
+    });
+    let res = (await all(
+        raw(model.job).map(e => e.get_results(() => true))
+    )).flat(2).filter(a =>
+        ncrs.find(b => a["ResNo"] == b["GUID"])
+    );
+    console.log(res);
+    console.log(ncrs);
+}
+
+const test3 = async () => {
+    let from = ui.engi.sync.from.part;
+    let to = ui.engi.sync.to.parts[0];
+    
+
+
+    let results = from.job.results;
+
+    for (let result of results) {
+        let oldDim = result.dim;
+        let newDim = to.mfgs.mfg.dims.find(e => e.get["DimSort"] == oldDim.get["DimSort"]);
+        if (!newDim) {
+            console.log("No Dim: " + result.get["GUID"]);
+            continue;
+        };
+
+        let oldSample = result.sample;
+        let newSample = to.job.samples.find(e => oldSample.get["SerialNumber"].startsWith(e.get["SerialNumber"]));
+        if (!newSample) {
+            console.log("No Sample: " + result.get["GUID"]);
+            continue;
+        };
+
+        result.get["ActualDimID"] = newDim.get["ID"];
+        result.get["__GlobalID_ActualDimID"] = newDim.get["GlobalID"];
+        
+        result.get["ActualPartInstanceID"] = newSample.get["ID"];
+        result.get["__GlobalID_ActualPartInstanceID"] = newSample.get["GlobalID"];
+
+        let serial = result.serial;
+        if (serial)
+            serial.get["__GlobalID_NCRJobID"] = to.job.get["GlobalID"];
+
+        ui.engi.sync.to.xdfx.data["Actuals"][result.get["GUID"]] = result.get;
+        if (serial) 
+            ui.engi.sync.to.xdfx.data["NCReports"][serial.get["GUID"]] = serial.get;
+
+        console.log("Converted: " + result.get["GUID"]);
+    }
+}
+
+const test4 = async () => {
+    let from = ui.engi.sync.from.part;
+    let to = ui.engi.sync.to.parts[0];
+
+    
 }
 
 const drawpdf = async (pdf, pageNo, canvas) => {

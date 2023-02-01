@@ -2,6 +2,7 @@ const samplize = (m, n) => {
     let arr = [];
     let mass = [];
     let spac = [];
+    if (m > n) m = n;
     let w_m = mathjs.max(mathjs.floor(m / (n - m + 1)), 1);
     let g_m1 = mathjs.floor(m / w_m);
     let w_s = mathjs.max(mathjs.floor((n - m) / (m - 1)), 1);

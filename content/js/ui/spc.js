@@ -203,7 +203,7 @@ const draw_spc = async (dim, x_chart, x_hist, r_chart, r_hist, options = {}) => 
                         tip.css("bottom", "");
                     }
 
-                    tip.$(".data").span($.fixed(data.y, 3));
+                    tip.$(".data").span($.fixed(data.y, dim.places()));
                     tip.$(".sample").span(result.sample.get["SerialNumber"]);
                     tip.$(".status").span(result.get["StatusText"]);
                     tip.$(".inspector").span(result.inspector ?

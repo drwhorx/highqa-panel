@@ -43,23 +43,39 @@ class XDFX {
             json.items = data.map(e => fields.map(f => e[f.name]));
             this.zip.file("Data\\" + name + ".json", JSON.stringify(json));
         }
-        let blob = await this.zip.generateAsync({ type: "blob" });
+        let blob = this.blob = await this.zip.generateAsync({ type: "blob" });
         return URL.createObjectURL(blob);
     }
     async load() {
         this.model = this.parts();
+        this.jobs();
+
+        this.ops();
+        this.mfgs();
 
         await this.files();
         await this.drawings();
 
-        this.ops();
-        this.mfgs();
         this.dims();
+        this.lots();
+        this.samples();
+        await this.ncrs();
+        this.holders();
+        this.results();
+    }
+    async download() {
+        let a = $("<a>")
+            .attr("href", await this.write())
+            .attr("download", this.file.name.slice(0, -5) + "-Modified.xdfx")
+            .css("display", "none")
+        a[0].click();
+        a.remove();
     }
     parts() {
         let parts = raw(this.data["Parts"]);
         parts.forEach(e => {
             e["GUID"] = e["GlobalID"];
+            e["CustomerGUID"] = e["__GlobalID_PartCustomerID"];
         });
         return load_parts(parts);
     }
@@ -68,6 +84,9 @@ class XDFX {
         jobs.forEach(e => {
             e["GUID"] = e["GlobalID"];
             e["PartGUID"] = e["__GlobalID_JobPartID"];
+            e["Number"] = e["JobNumber"];
+            e["ActivationDate"] = e["JobActivationDate"];
+            e["DeliveryDate"] = e["JobDeliveryDate"];
             e["Status"] = e["JobStatus"];
         });
         return load_jobs(jobs);
@@ -77,6 +96,8 @@ class XDFX {
         mfgs.forEach(e => {
             e["GUID"] = e["GlobalID"];
             e["PartGUID"] = e["__GlobalID_ManProcessPartID"];
+            e["ERPID"] = e["ManProcessExtID"];
+            e["Title"] = e["ManProcessName"];
             e["Description"] = e["ManProcessComments"];
         });
         return load_mfgs(mfgs);
@@ -96,7 +117,7 @@ class XDFX {
                 let file = raw(this.data["Files"]).find(b => a["Drawing"] == b["FolderID"]);
                 file["GUID"] = file["GlobalID"];
                 file["PartGUID"] = a["__GlobalID_DrawingPartID"];
-                file["Blob"] = await raw(user.xdfx.zip.files).find(e => e.name.includes(file["GlobalID"])).async("blob");
+                file["Blob"] = await raw(this.zip.files).find(e => e.name.includes(file["GlobalID"])).async("blob");
                 return file;
             }));
         return await load_files(files);
@@ -107,6 +128,7 @@ class XDFX {
             let file = raw(this.data["Files"]).find(b => e["Drawing"] == b["FolderID"]);
             e["GUID"] = e["GlobalID"];
             e["PartGUID"] = e["__GlobalID_DrawingPartID"];
+            e["OperationGUID"] = e["__GlobalID_DrawingManProcessID"];
             e["DrawingFile"] = file["GlobalID"];
             e["Title"] = e["DrawingNumber"];
             e["SheetName"] = e["DrawingSheetName"];
@@ -123,6 +145,11 @@ class XDFX {
             e["OperationGUID"] = e["__GlobalID_DimManProcessID"];
             e["DrawingGUID"] = e["__GlobalID_DimDrawingID"];
             e["PartGUID"] = e["__GlobalID_DimPartID"];
+            e["UpperTol"] = e["DimUpperTol"];
+            e["LowerTol"] = e["DimLowerTol"];
+            e["Nominal"] = e["DimData"];
+            e["TypeText"] = types.Dim[e["DimType"]];
+            e["TolTypeText"] = types.DimTol[e["DimTolType"]];
         });
         return load_dims(dims);
     }
@@ -131,6 +158,7 @@ class XDFX {
         lots.forEach(e => {
             e["GUID"] = e["GlobalID"];
             e["JobGUID"] = e["__GlobalID_LotJobID"];
+            e["Number"] = e["LotNumber"];
         });
         return load_lots(lots);
     }
@@ -138,29 +166,53 @@ class XDFX {
         let samples = raw(this.data["PartInstances"]);
         samples.forEach(e => {
             e["GUID"] = e["GlobalID"];
+            e["LotGUID"] = e["__GlobalID_PartInstanceLotID"];
             e["SerialNumber"] = e["PartInstanceSerialNumber"];
-            e["Number"] = e["LotNumber"];
         });
         return load_samples(samples);
     }
-    ncrs() {
+    async ncrs() {
         let ncrs = raw(this.data["NCReports"]);
+        let res = (await all(raw(this.data["WorkOrderLines"])
+            .map(async e => {
+                let query = API("ncr/list");
+                query.req["JobGUID"] = e["GlobalID"];
+                return (await query.pages())["NCRs"];
+            }))).flat();
         ncrs.forEach(e => {
+            let ncr = res.find(b => b["GUID"] == e["GlobalID"]);
             e["GUID"] = e["GlobalID"];
+            e["JobGUID"] = e["__GlobalID_NCRJobID"];
+            e["LotGUID"] = e["__GlobalID_NCRLotID"];
+            e["ERPID"] = e["NCRExtID"];
+            e["CreationDate"] = e["NCRCreateDate"];
+            e["Number"] = e["NCRNumber"];
+            e["CreatedByGUID"] = ncr?.CreatedByGUID;
         });
         return load_ncrs(ncrs);
     }
     holders() {
-        let holders = raw(this.data["Actuals"]);
+        let holders = raw(this.data["Actuals"])
+            .filter(e => e["ActualResult"] == 0);
         holders.forEach(e => {
             e["GUID"] = e["GlobalID"];
+            e["SampleGUID"] = e["__GlobalID_ActualPartInstanceID"];
+            e["DimGUID"] = e["__GlobalID_ActualDimID"];
+            e["ResNo"] = e["ActualCode"];
         });
         return load_holders(holders);
     }
     results() {
-        let results = raw(this.data["Actuals"]);
+        let results = raw(this.data["Actuals"])
+            .filter(e => e["ActualResult"] != 0);
         results.forEach(e => {
             e["GUID"] = e["GlobalID"];
+            e["SampleGUID"] = e["__GlobalID_ActualPartInstanceID"];
+            e["DimGUID"] = e["__GlobalID_ActualDimID"];
+            e["InspectedDate"] = e["ActualInspectDate"];
+            e["MeasuredByGUID"] = e["__GlobalID_ActualContactID"];
+            e["Status"] = e["ActualStatus"];
+            e["ResNo"] = e["ActualCode"];
         });
         return load_results(results);
     }

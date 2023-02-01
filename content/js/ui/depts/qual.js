@@ -3,9 +3,10 @@ $(window).on("load", () => {
     var depts = menu.depts;
 
     ui.qual = menu.$("> .qual").ext((qual) => ({
+        nav: () => qual.actions.open(),
         card: qual.$("> .tile > .card").ext((card) => ({
             tile: card.closest(".tile")
-        })).nav(() => qual.actions.open()),
+        })).nav(() => qual.nav ? qual.nav() : null),
         tile: qual.$("> .tile").ext((tile) => ({
 
         })),
@@ -13,7 +14,7 @@ $(window).on("load", () => {
             cards: actions.$(".action > .card"),
             open: async function () {
                 loading(true);
-                qual.card.nav();
+                qual.nav = null;
                 let hide = depts.tiles.not(qual.tile);
 
                 await hide.fadeout();
@@ -24,15 +25,17 @@ $(window).on("load", () => {
                     qual.tile.width("40vh"),
                 ]);
 
-                qual.card.nav(actions.close);
-                let res = await actions.load();
-                if (res == "cancelled") return;
-                qual.card.nav();
+                qual.nav = actions.close;
+                (async () => {
+                    let res = await actions.load();
+                    if (res == "cancelled") return;
+                    qual.nav = null;
 
-                loading(false);
-                await actions.fadein();
-                hide.hide();
-                qual.card.nav(actions.close);
+                    loading(false);
+                    await actions.fadein();
+                    hide.hide();
+                    qual.nav = actions.close;
+                })();
             },
             query: task(async (valid) => {
                 await query_basic(valid);
@@ -44,7 +47,7 @@ $(window).on("load", () => {
             close: async function () {
                 actions.query.cancel();
                 loading(true);
-                qual.card.nav();
+                qual.nav = null;
                 let show = depts.tiles.not(qual.tile);
 
                 await actions.fadeout();
@@ -59,10 +62,10 @@ $(window).on("load", () => {
 
                 loading(false);
                 await show.fadein();
-                qual.card.nav(actions.open);
+                qual.nav = actions.open;
             },
         })),
-        
+
         jobs: qual.$("> .jobs").ext((jobs) => ({
             grid: jobs.$(".grid").grid().ext((grid) => ({
                 copy: grid.copy.nav(async function () {
@@ -71,7 +74,7 @@ $(window).on("load", () => {
             })),
             open: async function () {
                 loading(true);
-                qual.card.nav();
+                qual.nav = null;
 
                 await qual.actions.fadeout();
                 qual.actions.hide();
@@ -83,7 +86,7 @@ $(window).on("load", () => {
                 jobs.load();
                 loading(false);
                 await jobs.fadein();
-                qual.card.nav(jobs.close);
+                qual.nav = jobs.close;
             },
             load: function () {
                 let grid = jobs.grid;
@@ -91,7 +94,7 @@ $(window).on("load", () => {
 
                 grid.rows().remove();
                 let sorted = raw(model.job)
-                    .filter(e => e.get["PartDeleted"] == 0)
+                    .filter(e => e.get["PartDeleted"] == 0 && e.get["Status"] == 1)
                     .sort((a, b) => b.get["Number"].replace("22J", "")
                         .localeCompare(a.get["Number"].replace("22J", "")))
 
@@ -113,7 +116,7 @@ $(window).on("load", () => {
             },
             close: async function () {
                 loading(true);
-                qual.card.nav();
+                qual.nav = null;
 
                 await jobs.fadeout();
                 jobs.hide();
@@ -124,14 +127,15 @@ $(window).on("load", () => {
 
                 loading(false);
                 await qual.actions.fadein();
-                qual.card.nav(qual.actions.close);
+                qual.nav = qual.actions.close;
             }
         })),
 
         spc: qual.$("> .spc").ext((spc) => ({
-            card: qual.$(".action.spc").nav(async () => await qual.jobs.open()),
+            card: qual.$(".action.spc")
+                .nav(async () => await qual.jobs.open()),
             title: spc.$("> .title"),
-            loading: spc.$("> .loading"),
+            loading: spc.$(".loading"),
             groups: spc.$("> .groups").ext((groups) => ({
                 copy: groups.$(".group.copy").ext((group) => ({
                     title: group.$("> .title"),
@@ -147,7 +151,7 @@ $(window).on("load", () => {
             })),
             open: async function (row) {
                 loading(true);
-                qual.card.nav();
+                qual.nav = null;
 
                 await qual.jobs.fadeout();
                 qual.jobs.hide();
@@ -164,24 +168,17 @@ $(window).on("load", () => {
                 loading(false);
                 spc.loading.fadein();
 
-                qual.card.nav(spc.close);
-                let res = await spc.query.run();
-                if (res == "cancelled") return;
+                qual.nav = spc.close;
+                (async () => {
+                    let res = await spc.query.run();
+                    if (res == "cancelled") return;
 
-                qual.card.nav();
-                spc.load();
-                await spc.loading.fadeout();
-                spc.loading.hide();
-
-                await all(spc.$(".group.clone").each(async function () {
-                    await $(this).fadein();
-                }))
-                spc.$(".cell.clone").each(function () {
-                    draw_spc($(this).prop("model"), $(this).$("svg"), $(null), $(null), $(null), {
-                        no_hover: true, scale: 2
-                    });
-                });
-                qual.card.nav(spc.close);
+                    qual.nav = null;
+                    await spc.loading.fadeout();
+                    spc.loading.hide();
+                    spc.load();
+                    qual.nav = spc.close;
+                })();
             },
             query: task(async (valid) => {
                 await all([
@@ -189,7 +186,7 @@ $(window).on("load", () => {
                 ]);
                 return valid();
             }),
-            load: function () {
+            load: async function () {
                 let ops = user.job.part.ops
                     .filter(o => o.dims.find(d => d.results.length > 0))
                     .sort((a, b) => a.get["Code"].replace(/\D+/g, '')
@@ -214,22 +211,31 @@ $(window).on("load", () => {
                     group.hide();
                     spc.groups.append(group);
                 }
+                await all(spc.$(".group").map(async function () {
+                    await $(this).fadein();
+                }).get());
+                spc.$(".cell").each(function () {
+                    draw_spc($(this).prop("model"), $(this).$("svg"), $(null), $(null), $(null), {
+                        no_hover: true, scale: 2
+                    });
+                });
             },
             close: async function () {
                 spc.query.cancel();
                 loading(true);
-                qual.card.nav();
+                qual.nav = null;
 
                 await qual.spc.fadeout();
                 qual.spc.hide();
 
                 loading(false);
                 await qual.jobs.fadein();
-                qual.card.nav(qual.jobs.close);
+                qual.nav = qual.jobs.close;
             }
         })),
         daily: qual.$("> .daily").ext((daily) => ({
-            card: qual.$(".action.daily").nav(async () => await daily.open()),
+            card: qual.$(".action.daily")
+                .nav(async () => await daily.open()),
             date: daily.$("> .date").ext((date) => ({
                 back: date.$("> .back").click(async () => {
                     loading(true);
@@ -276,7 +282,7 @@ $(window).on("load", () => {
             open: async function () {
                 let actions = qual.actions;
                 loading(true);
-                qual.card.nav();
+                qual.nav = null;
 
                 await actions.fadeout();
                 actions.hide();
@@ -290,21 +296,23 @@ $(window).on("load", () => {
                 daily.results.hide();
                 await daily.fadein();
 
-                qual.card.nav(daily.close);
-                let res = await daily.query.run();
-                if (res == "cancelled") return;
-                daily.load();
-                qual.card.nav();
-
-                loading(false);
-                await daily.results.fadein();
-                qual.card.nav(daily.close);
+                qual.nav = daily.close;
+                (async () => {
+                    let res = await daily.query.run();
+                    if (res == "cancelled") return;
+                    daily.load();
+                    qual.nav = null;
+    
+                    loading(false);
+                    await daily.results.fadein();
+                    qual.nav = daily.close;
+                })();
             },
             query: task(async function (valid) {
                 await timeout(2000);
                 if (!valid()) return;
                 model.result = {};
-                let res = await all([
+                let res = (await all([
                     all([1, 2, 3, 4].map(async (num) => {
                         let query = API("results/list");
                         let next = new Date(user.date);
@@ -322,14 +330,100 @@ $(window).on("load", () => {
                         query.req["CreationDateFrom"] = user.date.toHighQADate();
                         query.req["CreationDateTo"] = next.toHighQADate();
                         let ncrs = (await query.pages(valid))["NCRs"];
-                        return ncrs.map(e => e["JobGUID"]);
+                        if (!valid()) return;
+                        return all(ncrs
+                            .filter(a => a == ncrs.find(b => a["JobGUID"] == b["JobGUID"]))
+                            .map(async e =>
+                                (await model.job[e["JobGUID"]].get_results(valid))
+                                    .filter(a => ncrs.find(b => a["ResNo"] == b["GUID"])
+                            )));
                     })()
-                ]);
+                ])).flat(2)
+                    .filter((a, i, self) => a == self.find(b => a["GUID"] == b["GUID"]));
                 if (!valid()) return;
-                return all(res.flat(2)
-                    .filter((e, i, self) => self.indexOf(e) == i)
-                    .map(e => model.job[e])
-                    .map(job => query_job(job, { do_drawings: true }, valid)));
+
+                let dims = await all(res
+                    .filter(a => a == res.find(b => a["DimGUID"] == b["DimGUID"]))
+                    .map(async e => {
+                        let query = API("dims/list");
+                        query.req["DimGUIDs"] = e["DimGUID"];
+                        return (await query.send())["Dims"][0];
+                    }));
+                if (!valid()) return;
+
+                let drawings = await all(dims
+                    .filter(a => a == dims.find(b => a["DrawingGUID"] == b["DrawingGUID"]))
+                    .map(async e => {
+                        let query = API("drawings/list");
+                        query.req["DrawingGUIDs"] = e["DrawingGUID"];
+                        return (await query.send())["Drawings"][0];
+                    }));
+                if (!valid()) return;
+
+                let files = await all(drawings
+                    .filter(a => a == drawings.find(b => a["DrawingFile"] == b["DrawingFile"]))
+                    .map(async e => {
+                        model.part[e["PartGUID"]].drawings = [];
+                        model.part[e["PartGUID"]].files = [];
+
+                        let query1 = API("filestorage/token");
+                        let query2 = API("filestorage/download");
+                        query1.req["GUID"] = e["DrawingFile"];
+                        query2.req["Token"] = (await query1.send())["Token"];
+                        if (!valid()) return;
+                        let res = await query2.send();
+                        if (!valid()) return;
+                        return valid() && {
+                            "PartGUID": e["PartGUID"],
+                            "GUID": e["DrawingFile"],
+                            "Blob": res
+                        }
+                    }));
+                if (!valid()) return;
+
+                await load_files(files);
+                if (!valid()) return;
+                await load_drawings(drawings);
+                if (!valid()) return;
+                
+                await all(res
+                    .filter(a => a == res.find(b => a["JobGUID"] == b["JobGUID"]))
+                    .map(async e => {
+                        let job = model.job[e["JobGUID"]];
+                        job.part.ops = [];
+                        job.part.dims = [];
+                        job.part.mfgs = {
+                            mfg: {},
+                            fin: {},
+                            arr: []
+                        };
+                        job.lots = {
+                            fpi: {},
+                            mfg: {},
+                            arr: []
+                        };
+                        job.ncrs = [];
+                        job.samples = [];                    
+                        let [get_ops, get_mfgs, get_lots, get_samples, get_ncrs, get_results] = await all([
+                            job.part.get_ops(valid),
+                            job.part.get_mfgs(valid),
+                            job.get_lots(valid),
+                            job.get_samples(valid),
+                            job.get_ncrs(valid),
+                            job.get_results(valid)
+                        ]);
+                        if (!valid()) return;
+                        load_ops(get_ops);
+                        load_mfgs(get_mfgs);
+                        load_lots(get_lots);
+                        load_ncrs(get_ncrs);
+                        load_samples(get_samples);
+
+                        let get_dims = await job.part.get_dims(valid);
+                        if (!valid()) return;
+                        load_dims(get_dims);
+                        load_results(get_results);
+                    }));
             }),
             load: function () {
                 daily.results.$(".clone").remove();
@@ -356,7 +450,9 @@ $(window).on("load", () => {
                         row.$(".dimNo").span(result.dim.get["DimNo"]);
                         row.$(".dimReq").span(result.dim.get["Requirement"]);
                         row.$(".sample").span(result.sample.get["SerialNumber"]);
-                        row.$(".operator").span(result.inspector.get["FirstName"] + " " + result.inspector.get["LastName"]);
+                        row.$(".operator").span(result.inspector?
+                            result.inspector.get["FirstName"] + " " + result.inspector.get["LastName"] : ""
+                        );
                         row.$(".status").span(result.get["StatusText"]);
                         group.grid.append(row);
                     }
@@ -368,7 +464,7 @@ $(window).on("load", () => {
                 let actions = qual.actions;
                 daily.query.cancel();
                 loading(true);
-                qual.card.nav();
+                qual.nav = null;
 
                 await daily.fadeout();
                 daily.hide();
@@ -379,7 +475,7 @@ $(window).on("load", () => {
 
                 loading(false);
                 await actions.fadein();
-                qual.card.nav(actions.close);
+                qual.nav = actions.close;
             }
         }))
     }));

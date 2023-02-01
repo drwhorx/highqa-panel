@@ -155,6 +155,7 @@ const models = {
         get: init,
         part: {},
 
+        drawings: [],
         dims: [],
         holders: [],
         results: []
@@ -213,7 +214,7 @@ const models = {
         get: init,
         part: {},
         file: {},
-        
+
         dims: [],
         get_blob: async (valid) => {
             let query1 = API("filestorage/token");
@@ -223,6 +224,31 @@ const models = {
             if (!valid()) return;
             let res = await query2.send();
             return valid() && res;
+        },
+        draw_svg: (svg, dims) => {
+            let drawing = model.drawing[init["GUID"]];
+            if (!dims) dims = drawing.dims;
+
+            svg.attr("viewBox", "0 0 " + drawing.width + " " + drawing.height);
+            svg.$("image").attr("href", drawing.png);
+            svg.prop("model", drawing);
+
+            for (let dim of dims) {
+                let dupe = svg.$(".copy.dim").dupe();
+                dupe.prop("model", dim);
+                let coords = dim.get["ShapeCenter"].split(",");
+                let size = dim.get["ShapePoints"].split(",");
+                dupe.attr({
+                    x: coords[0],
+                    y: coords[1],
+                    width: size[0],
+                    height: size[1]
+                }).css({
+                    transform: `rotateZ(${360 - dim.get["ShapeRotateAngle"]}deg)`
+                });
+                dupe.$(".balloon").text(dim.get["DimNo"]);
+                svg.append(dupe);
+            }
         }
     }),
     file: (init) => model.load(model.file, {
@@ -285,7 +311,7 @@ const models = {
             if (!valid()) return;
 
             let res = await all(files.map(async file => {
-                
+
                 let query1 = API("filestorage/token");
                 let query2 = API("filestorage/download");
                 query1.req["GUID"] = file["GUID"];
@@ -306,4 +332,70 @@ const models = {
     ncr: (init) => model.load(model.ncr, {
         get: init
     })
+}
+
+const types = {
+    Dim: {
+        0: "Unknown",
+        1: "Angular",
+        2: "Angularity",
+        3: "Bilateral X",
+        4: "Bilateral Y",
+        5: "Bilateral Z",
+        6: "Circularity",
+        7: "Circular Runout",
+        8: "Concentricity",
+        9: "Coordinate",
+        10: "CS Dist",
+        11: "Cylindricity",
+        12: "Diameter",
+        13: "Flatness",
+        14: "Line Profile",
+        15: "Linear",
+        16: "Width",
+        17: "General",
+        18: "Square",
+        19: "Note",
+        20: "Parallelism",
+        21: "Perpendicularity",
+        22: "Point",
+        23: "Point Profile",
+        24: "Polar",
+        25: "Radial",
+        26: "Straightness",
+        27: "Surface Profile",
+        28: "Symmetry",
+        29: "Total Runout",
+        30: "True Position",
+        31: "Polar Angular",
+        32: "Polar Radial",
+        33: "Depth",
+        34: "Chamfer",
+        35: "Thread",
+        36: "Surface Finish",
+        37: "Welding",
+        38: "Counterbore",
+        39: "Countersink",
+        40: "Fastener",
+        41: "Flag Note",
+        42: "Custom Bilateral",
+        43: "Custom Pass/Fail",
+        44: "Spherical Diameter",
+        45: "Spherical Radius",
+        46: "Edge",
+        48: "Arc Length",
+        49: "Conical Taper",
+        50: "Slope",
+        51: "Spotface"
+    },
+    DimTol: {
+        0: "General",
+        1: "Tolerance",
+        2: "As Limit",
+        3: "Basic",
+        4: "Reference",
+        5: "MIN",
+        6: "MAX",
+        7: "Tol Class",
+    }
 }

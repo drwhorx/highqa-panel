@@ -102,33 +102,65 @@
     gap: 5vh;
 }
 
-#console > .engi > .sync > .files {
+#console > .engi > .sync > .setup {
     gap: 5vh;
-    height: 38vh;
 }
 
-#console > .engi > .sync > .files > * {
-    align-items: center;
-    padding: 2vh 0;
+#console > .engi > .sync .from,
+#console > .engi > .sync .to {
+    overflow-y: auto;
+    height: 69vh;
+    padding-bottom: 2vh;
+    overflow-x: hidden;
     width: 55vh;
     gap: 2vh;
+    align-items: center;
 }
 
-#console > .engi > .sync .xdfx {
-    gap: 4vh;
+#console > .engi > .sync .xdfx.clicky {
     font-size: 3vh;
-    padding: 1vh 2vh;
+    justify-content: center;
+    width: 45vh;
+}
+
+#console > .engi > .sync .partNo {
+    overflow-x: hidden;
+    padding: 0 2vh;
+    text-overflow: ellipsis;
+}
+
+#console > .engi > .sync .jobNo {
+    padding: 0 2vh;
+}
+
+#console > .engi > .sync .setup .header {
+    width: 100%;
+    justify-content: center;
+    padding: 1vh 0;
+
+    position: sticky;
+    z-index: 1;
+    top: 0;
 }
 
 #console > .engi > .sync .clicky {
-    padding: 1vh 2vh;
+    line-height: 5vh;
     font-size: 3vh;
+    width: 25vh;
 }
 
-#console > .engi > .sync > .options {
+#console > .engi > .sync .options {
     align-items: center;
-    height: 38vh;
     width: 115vh;
     padding: 2vh 0;
-    gap: 2vh;
+}
+
+#console > .engi > .sync .options > * {
+    gap: 1.5vh;
+}
+
+#console > .engi > .sync .drawings .header {
+    width: 100%;
+    justify-content: center;
+    padding: 1vh 3vh;
 }

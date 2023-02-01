@@ -1,5 +1,9 @@
 const all = Promise.all.bind(Promise);
-const ui = {};
+const ui = {
+    download: (file) => {
+
+    }
+};
 
 $(window).on("load", () => {
     ui.title = $("#title").ext((title) => ({
@@ -82,8 +86,6 @@ $(window).on("load", () => {
                 spc.$(".stat.lclr").text(calc.lclr.toFixed(4));
 
                 d3.selectAll("#spc_canvas1, #spc_canvas2, #spc_canvas3, #spc_canvas4").selectAll("*").remove();
-                d3.selectAll("#spc_canvas1, #spc_canvas2, #spc_canvas3, #spc_canvas4")
-                    .on("touchmove pointerdown pointerup pointercancel pointerleave lostpointercapture pointermove", null);
                 spc.$(".spc_tip").hide();
                 ui.input.closest(".alpha").insertBefore(ui.prompts.spc.closest(".alpha"));
                 await ui.prompts.open(spc);
@@ -92,6 +94,7 @@ $(window).on("load", () => {
         })),
         input: $(".input.popup"),
         login: $(".login.popup"),
+        merge: $(".merge.popup"),
         more: $(".more.popup").ext((more) => ({
             comments: more.$(".comments"),
             serial: more.$(".serial"),
@@ -111,23 +114,35 @@ $(window).on("load", () => {
         caps: keyboard.$(".caps").nav(() => {
             for (let letter of keyboard.letters) {
                 let text = $(letter).text();
-                $(letter).text($(letter).attr("cap") || text.toUpperCase());
+                $(letter).text($(letter).attr("cap") || text.toLowerCase());
                 $(letter).attr("cap", text);
             }
         }),
         clear: keyboard.$(".clear").nav(() => {
             $(ui.focused).val("");
             $(ui.focused).trigger("input");
+            $(ui.focused).trigger("focus");
         }),
         space: keyboard.$(".space").nav(() => {
             let focus = $(ui.focused);
             focus.val(focus.val() + " ");
             focus.trigger("input");
+            focus.trigger("focus");
         }),
         letters: keyboard.$(".letter").nav(function () {
             let focus = $(ui.focused);
             focus.val(focus.val() + $(this).text());
             focus.trigger("input");
+            focus.trigger("focus");
         }),
-    }))
+    }));
+    ui.message = $("#message .text").ext((message) => ({
+        open: async function (text) {
+            message.text(text);
+            await message.fadein();
+            await timeout(6000);
+            await message.fadeout();
+            message.hide();
+        }
+    }));
 });

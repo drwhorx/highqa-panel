@@ -86,29 +86,26 @@
 }
 
 #console > .qual > .spc {
-    width: 115vh;
-    overflow-y: auto;
     font-size: 3vh;
     text-align: center;
     align-items: center;
-    padding: 2vh;
     gap: 3vh;
 }
 
 #console > .qual > .spc > .title {
-    line-height: 6vh;
-    background-color: #444;
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    box-shadow: 0 0 3vh #1D1D1D;
-    width: 100vh;
+    line-height: 7vh;
+    width: 115vh;
     border-radius: 1vh;
+    justify-content: center;
 }
 
 #console > .qual > .spc > .groups {
-    padding-bottom: 3vh;
+    padding: 3vh 0;
     gap: 3vh;
+    height: 70vh;
+    overflow-y: auto;
+    width: 115vh;
+    align-items: center;
 }
 
 #console > .qual > .spc .group {

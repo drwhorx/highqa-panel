@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="css/popups/updater.css">
     <link rel="stylesheet" href="css/popups/popups.css">
     <link rel="stylesheet" href="css/popups/input.css">
+    <link rel="stylesheet" href="css/popups/merge.css">
     <link rel="stylesheet" href="css/popups/login.css">
     <link rel="stylesheet" href="css/popups/more.css">
     <link rel="stylesheet" href="css/popups/spc.css">
@@ -64,27 +65,10 @@
             </th>
         </tr>
     </table>
-    <table class="grid copy" hidden>
-        <colgroup>
-            <col style="width: 17vh">
-            <col style="max-width: 33vh">
-        </colgroup>
-        <thead></thead>
-        <tr class="bg1">
-            <td></td>
-        </tr>
-        <tr class="bg2">
-            <td style="min-width: 17vh"></td>
-        </tr>
-        <tr class="top">
-            <td class="left" style="min-width: 15vh">OP #</td>
-            <td class="copy" style="min-width: 31vh">Title</td>
-        </tr>
-        <tr class="copy content">
-            <td class="opNo left">OP 030</td>
-            <td class="opName">LATHE</td>
-        </tr>
-    </table>
+
+    <div class="drawing clip copy" hidden>
+
+    </div>
 </head>
 
 <body>
@@ -94,18 +78,20 @@
                 <div id="console1">
                     <div id="title" class="section">
                         <div class="section name">Guest</div>
-                        <div class="loading" hidden>
-                            <div class="progress">
-                                <div>loading</div>
+                        <div class="center">
+                            <div class="loading" hidden>
+                                <div class="progress">
+                                    <div>loading</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="section company">v0.3.0</div>
+                        <div class="section company">v0.4.0</div>
                     </div>
                     <div id="console">
                         <div class="section engi">
                             <div class="section tile">
                                 <div class="section card bg">
-                                    <img class="icon" src="css/img/gears.svg">
+                                    <img class="icon" src="css/img/gears.png">
                                     <div class="label">Engineering</div>
                                 </div>
                                 <div class="pdf section bg" hidden>
@@ -125,17 +111,17 @@
                             <div class="section vertical actions" hidden>
                                 <div class="section">
                                     <div class="section make card bg">
-                                        <img class="icon" src="css/img/gears.svg">
+                                        <img class="icon" src="css/img/add-job.png">
                                         <div class="label">New Job</div>
                                     </div>
                                 </div>
                                 <div class="section">
                                     <div class="section sync card bg">
-                                        <img class="icon" src="css/img/gears.svg">
+                                        <img class="icon" src="css/img/sync-xdfx.png">
                                         <div class="label">Sync XDFX</div>
                                     </div>
                                     <div class="section xdfx card bg">
-                                        <img class="icon" src="css/img/gears.svg">
+                                        <img class="icon" src="css/img/edit-xdfx.png">
                                         <div class="label">Edit XDFX</div>
                                     </div>
                                 </div>
@@ -169,6 +155,7 @@
                                 </div>
                             </div>
                             <div class="section vertical bg make" hidden>
+                                <input type="file" accept=".xdfx" autocomplete="off" hidden>
                                 <input class="display jobNo" placeholder="Job #" autocomplete="off">
                                 <input class="display dueDate" placeholder="Due Date" autocomplete="off" type="date">
                                 <input class="display jobQty" placeholder="Job Quantity" autocomplete="off">
@@ -180,34 +167,36 @@
                             </div>
                             <div class="section vertical bg xdfx" hidden>
                                 <input type="file" accept=".xdfx" autocomplete="off" hidden>
-                                <div class="clicky toggle classes">Auto Classes</div>
-                                <div class="clicky toggle numbers">Fix Numbering</div>
+                                <div class="clicky toggle classes invalid">Auto Classes</div>
+                                <div class="clicky toggle numbers" hidden>Fix Numbering</div>
                                 <div class="clicky accept">Export</div>
                             </div>
                             <div class="section vertical sync" hidden>
-                                <div class="section files">
+                                <div class="section setup">
                                     <div class="section vertical bg from">
                                         <input type="file" accept=".xdfx" autocomplete="off" hidden>
-                                        <div class="clicky add">Copy From</div>
-                                        <div class="copy section bg xdfx">
+                                        <div class="section bg header">
+                                            <div class="clicky add">Copy From</div>
+                                        </div>
+                                        <div class="copy section xdfx clicky toggle invalid">
                                             <div class="partNo"></div>
                                             <div class="jobNo"></div>
                                         </div>
                                     </div>
                                     <div class="section vertical bg to">
-                                        <input type="file" accept=".xdfx" autocomplete="off" multiple="true" hidden>
-                                        <div class="clicky add">Copy To</div>
-                                        <div class="copy section bg xdfx">
+                                        <input type="file" accept=".xdfx" autocomplete="off" hidden>
+                                        <div class="section bg header">
+                                            <div class="clicky add">Copy To</div>
+                                        </div>
+                                        <div class="copy section xdfx clicky toggle invalid">
                                             <div class="partNo"></div>
                                             <div class="jobNo"></div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="section vertical bg options">
-                                    <div class="clicky dims">Sync Dims</div>
-                                    <div class="clicky drawings">Sync Drawings</div>
-                                    <div class="clicky results">Move Results</div>
-                                    <div class="clicky accept">Sync XDFX(s)</div>
+                                    <div class="clicky accept parts" hidden>Sync XDFX(s)</div>
+                                    <div class="clicky accept jobs">Sync XDFX(s)</div>
                                 </div>
                             </div>
                         </div>
@@ -244,7 +233,7 @@
                                     </div>
                                     <div class="reload clicky">Refresh</div>
                                     <div class="fpi clicky">First Piece</div>
-                                    <div class="repair clicky">Fix Quantity</div>
+                                    <div class="repair clicky">Enter Qty.</div>
                                     <div class="export clicky">Export Data</div>
                                 </div>
                             </div>
@@ -389,14 +378,14 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="section vertical bg spc" hidden>
-                                <div class="title"></div>
-                                <div class="loading" hidden>
-                                    <div class="progress">
-                                        <div>loading</div>
+                            <div class="section vertical spc" hidden>
+                                <div class="section bg title"></div>
+                                <div class="section vertical bg groups">
+                                    <div class="loading" hidden>
+                                        <div class="progress">
+                                            <div>loading</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="section vertical groups">
                                     <div class="section vertical group copy">
                                         <div class="title"></div>
                                         <div class="copy section row">
@@ -411,13 +400,13 @@
                             <div class="section actions" hidden>
                                 <div class="section action daily">
                                     <div class="section card bg">
-                                        <img class="icon" src="css/img/chart.png">
+                                        <img class="icon" src="css/img/daily.png">
                                         <div class="label">Daily Data</div>
                                     </div>
                                 </div>
                                 <div class="section action spc">
                                     <div class="section card bg">
-                                        <img class="icon" src="css/img/chart.png">
+                                        <img class="icon" src="css/img/spc.png">
                                         <div class="label">SPC</div>
                                     </div>
                                 </div>
@@ -425,9 +414,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="message" hidden>
-                
             </div>
         </div>
     </div>
@@ -444,7 +430,7 @@
                             </div>
                             <div class="data section vertical bg" hidden>
                                 <input class="display" autocomplete="off" />
-                                <div class="clear clicky">Clear</div>
+                                <div class="back clicky">Backspace</div>
                                 <div class="row section">
                                     <div class="number clicky">1</div>
                                     <div class="number clicky">2</div>
@@ -474,14 +460,17 @@
                                         <div>loading</div>
                                     </div>
                                 </div>
-                                <div class="gallery">
-                                    <img class="pdf"></img>
-                                    <div class="dims">
-                                        <div class="copy dim">
-                                            <div class="balloon" hidden></div>
-                                        </div>
-                                    </div>
+                                <div class="section buttons">
+                                    <div class="zoomin clicky"><img src="css/img/zoom-in.png"></div>
+                                    <div class="zoomfit clicky"><img src="css/img/zoom-fit.png"></div>
+                                    <div class="zoomout clicky"><img src="css/img/zoom-out.png"></div>
                                 </div>
+                                <svg class="gallery">
+                                    <image class="pdf"></image>
+                                    <rect class="copy dim" rx=".4vh">
+                                        <rect class="balloon" hidden></rect>
+                                    </rect>
+                                </svg>
                                 <div class="section spotlight" hidden>
                                     <div class="dimreq gdt clicky"></div>
                                 </div>
@@ -494,11 +483,6 @@
                 <div class="info1 section vertical">
                     <div class="jobNo"></div>
                     <div class="opNo"></div>
-                </div>
-                <div class="buttons section">
-                    <div class="zoomin clicky">+</div>
-                    <div class="zoomfit clicky">=</div>
-                    <div class="zoomout clicky">-</div>
                 </div>
                 <div class="info2 section vertical">
                     <div class="sampleNo"></div>
@@ -534,36 +518,36 @@
                         <div class="letter clicky" cap=")">0</div>
                     </div>
                     <div class="row section">
-                        <div class="letter clicky">q</div>
-                        <div class="letter clicky">w</div>
-                        <div class="letter clicky">e</div>
-                        <div class="letter clicky">r</div>
-                        <div class="letter clicky">t</div>
-                        <div class="letter clicky">y</div>
-                        <div class="letter clicky">u</div>
-                        <div class="letter clicky">i</div>
-                        <div class="letter clicky">o</div>
-                        <div class="letter clicky">p</div>
+                        <div class="letter clicky">Q</div>
+                        <div class="letter clicky">W</div>
+                        <div class="letter clicky">E</div>
+                        <div class="letter clicky">R</div>
+                        <div class="letter clicky">T</div>
+                        <div class="letter clicky">Y</div>
+                        <div class="letter clicky">U</div>
+                        <div class="letter clicky">I</div>
+                        <div class="letter clicky">O</div>
+                        <div class="letter clicky">P</div>
                     </div>
                     <div class="row section">
-                        <div class="letter clicky">a</div>
-                        <div class="letter clicky">s</div>
-                        <div class="letter clicky">d</div>
-                        <div class="letter clicky">f</div>
-                        <div class="letter clicky">g</div>
-                        <div class="letter clicky">h</div>
-                        <div class="letter clicky">j</div>
-                        <div class="letter clicky">k</div>
-                        <div class="letter clicky">l</div>
+                        <div class="letter clicky">A</div>
+                        <div class="letter clicky">S</div>
+                        <div class="letter clicky">D</div>
+                        <div class="letter clicky">F</div>
+                        <div class="letter clicky">G</div>
+                        <div class="letter clicky">H</div>
+                        <div class="letter clicky">J</div>
+                        <div class="letter clicky">K</div>
+                        <div class="letter clicky">L</div>
                     </div>
                     <div class="row section">
-                        <div class="letter clicky">z</div>
-                        <div class="letter clicky">x</div>
-                        <div class="letter clicky">c</div>
-                        <div class="letter clicky">v</div>
-                        <div class="letter clicky">b</div>
-                        <div class="letter clicky">n</div>
-                        <div class="letter clicky">m</div>
+                        <div class="letter clicky">Z</div>
+                        <div class="letter clicky">X</div>
+                        <div class="letter clicky">C</div>
+                        <div class="letter clicky">V</div>
+                        <div class="letter clicky">B</div>
+                        <div class="letter clicky">N</div>
+                        <div class="letter clicky">M</div>
                     </div>
                 </div>
                 <div class="letters section vertical">
@@ -747,11 +731,41 @@
             <div class="accept clicky invalid">Accept</div>
         </div>
     </div>
-    <div class="alpha more" hidden>
-        <div class="popup more section vertical bg">
-            <textarea class="display comments" placeholder="Comments" autocomplete="off"></textarea>
-            <input class="display serial" placeholder="Serial Number" autocomplete="off">
+    <div class="alpha merge" hidden>
+        <div class="popup merge section vertical">
+            <div class="section bg controls">
+                <div class="back clicky">&#60;&#60;</div>
+                <div class="next clicky">&#62;&#62;</div>
+                <div class="accept clicky">Accept</div>
+            </div>
+            <div class="section display">
+                <div class="section bg vertical from">
+                    <div class="section bg title"></div>
+                    <div class="section vertical drawings">
+                        <svg class="drawing copy">
+                            <image class="pdf"></image>
+                            <rect class="copy dim" rx=".4vh">
+                                <rect class="balloon" hidden></rect>
+                            </rect>
+                        </svg>
+                    </div>
+                </div>
+                <div class="section bg vertical to">
+                    <div class="section bg title"></div>
+                    <div class="section vertical drawings">
+                        <svg class="drawing copy">
+                            <image class="pdf"></image>
+                            <rect class="copy dim" rx=".4vh">
+                                <rect class="balloon" hidden></rect>
+                            </rect>
+                        </svg>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+    <div id="message">
+        <div class="text section bg" hidden></div>
     </div>
     <div class="alpha message" hidden>
         <div class="popup message section vertical bg">
@@ -760,6 +774,14 @@
                 <div class="accept clicky">Accept</div>
                 <div class="cancel clicky">Cancel</div>
             </div>
+        </div>
+    </div>
+    <div class="alpha verify" hidden>
+        <div class="popup verify section vertical bg" hidden>
+            <div class="text">Verify the following:</div>
+            <div class="text">1: Part Quantity</div>
+            <div class="text">2: OP Sketches</div>
+            <div class="text">Next Step: First Piece</div>
         </div>
     </div>
 </body>

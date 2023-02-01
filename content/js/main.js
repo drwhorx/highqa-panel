@@ -12,25 +12,31 @@ const dupe = (el) => {
     return clone;
 }
 
-const loading = (bool) => {
-    if (bool) $("#title > .loading").fadein()
-    else $("#title > .loading").fadeout()
+const loading = async (bool) => {
+    if (bool)
+        await $("#title > .center > .loading").fadein()
+    else {
+        await $("#title > .center > .loading").fadeout();
+        $("#title > .center > .loading").hide();
+    }
 };
 
 Date.prototype.toHighQADate = function () {
     let date = new Date(this);
     date.setHours(this.getHours() - 4);
     let offset = date.getTimezoneOffset();
-    let hours = ((offset % 60) / 100).toFixed(2).slice(2);
-    let mins = date.getTimezoneOffset() / 60;
-    return date.toISOString().slice(0, -1) + "0000-04:00";
+    let hours = ("" + ((offset / 60) / 100).toFixed(2)).slice(2);
+    let mins = ("" + ((offset % 60) / 100).toFixed(2)).slice(2);
+    return date.toISOString().slice(0, -1) + "0000-" + hours + ":" + mins;
 }
 
 function trackPointer({ start, move, out, end }, target) {
     var id;
     let node = target.nodes()[0];
     $(node)
-        .on(`contextmenu`, e => false)
+        .on(`contextmenu`, e => false);
+    $(node)
+        .on("touchmove pointerdown pointerup pointercancel pointerleave lostpointercapture pointermove", null);
 
     target
         .on("touchmove", e => e.preventDefault())
@@ -66,7 +72,9 @@ $.extend({
             });
     },
     places: function (num) {
-        return +num === NaN ? null : (+(mathjs.abs(num % 1)).toFixed(8) + "").length - 2;
+        return +num === NaN ? null : mathjs.max(
+            (+(mathjs.abs(num % 1)).toFixed(8) + "").length - 2, 0
+        );
     },
     fixed: function (num, min) {
         return +num === NaN ? null : (+num).toFixed(mathjs.max(min, $.places(num)))
@@ -74,6 +82,7 @@ $.extend({
 })
 
 $.easing.easeBounce = d3.easeBounce;
+$.easing.easeCircle = d3.easeCircleInOut;
 
 $.fn.extend({
     ext: function (init) {
@@ -82,6 +91,13 @@ $.fn.extend({
         obj.inits = [...(this.inits || []), init];
         obj.exts = [...(this.exts || []), ...Object.values(obj)];
         if (this.length == 1) this.prop("obj", this.extend(obj));
+        this.dupe = function () {
+            let clone = this.clone(true, true);
+            let ext = init(clone);
+            clone.removeClass("copy");
+            clone.addClass("clone");
+            return clone.extend(ext);
+        }
         return this.extend(obj);
     },
     split: function (init) {
@@ -91,7 +107,10 @@ $.fn.extend({
         return this.extend(obj);
     },
     $: function (selector) {
-        return this.find(selector)
+        if (selector.includes(".copy"))
+            return this.find(selector)
+        else
+            return this.find(selector).not(".copy")
     },
 
     fadeout: function () {
@@ -190,21 +209,20 @@ $.fn.extend({
     },
     dupe: function () {
         let clone = $(this[0]).clone(true, true);
-        for (let init of (this.inits || [])) {
-            clone = clone.ext(init);
-        }
         clone.removeClass("copy");
         clone.addClass("clone");
         return clone;
     },
-    nav: function (nav = () => {}) {
+    nav: function (nav = () => { }, clear) {
+        if (!nav) nav = () => { };
         for (let el of this) {
             $(el).off("click");
+            var ignore = false;
             $(el).click(async function (e) {
-                if ($(this).prop("ignore")) return;
-                $(this).prop("ignore", true);
+                if (ignore) return;
+                ignore = true;
                 await nav.bind(this, e)();
-                $(this).prop("ignore", false);
+                ignore = false;
             });
         }
         return this;
@@ -240,8 +258,13 @@ $.fn.extend({
             this.removeAttr("hidden")
         else this.hide();
     },
-    hide: function () {
-        return this.prop("hidden", true)
+    hide: function (toggle) {
+        if (toggle === undefined || toggle) {
+            this.attr("hidden", true);
+            this.prop("hidden", true);
+        } else {
+            this.show();
+        }
     }
 })
 
@@ -262,7 +285,7 @@ $(window).on("load", function () {
         $(this).attr("type", "text");
         $(this).keyup(function () {
             let val = $(this).val().replace(/\D+/g, '');
-            arr = [ val.slice(0, 2), val.slice(2, 4), val.slice(4, 8)].filter(e => !!e);
+            arr = [val.slice(0, 2), val.slice(2, 4), val.slice(4, 8)].filter(e => !!e);
             $(this).val(arr.join("/"));
         });
     });

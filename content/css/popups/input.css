@@ -26,7 +26,7 @@
 
 .popup.input .controls {
     height: 12.5vh;
-    justify-content: space-between;
+    justify-content: center;
     box-shadow: 0 0 4vh #000000;
 }
 
@@ -83,42 +83,22 @@
     box-shadow: 0 0 2vh #101010;
     border-radius: 1vh;
     background-color: #777777;
+    cursor: grab;
 }
 
 .popup.input .drawing .gallery {
+    height: 59vh;
+    padding: 4vh;
     width: auto;
-    overflow: auto;
     position: relative;
-}
-
-.popup.input .drawing img {
-    height: 58.5vh;
-    padding: 4vh;
-    border-radius: 1vh;
     transform-origin: top left;
-    transition: transform .3s;
-}
-
-.popup.input .drawing .dims {
-    height: 58.5vh;
-    padding: 4vh;
-    position: absolute;
-    border-radius: 1vh;
-    transform-origin: top left;
-    top: 0;
-    left: 0;
-    transition: transform .3s;
 }
 
 .popup.input .drawing .dim {
     border: 0.2vh solid;
     cursor: pointer;
-    position: absolute;
     transform-origin: center;
-    transition: transform .1s, background-color .1s;
-    border-radius: .4vh;
-    display: flex;
-    align-items: center;
+    transition: transform .1s, fill .1s;
     /* box-shadow: 0 0 .4vh #101010; */
 }
 
@@ -129,7 +109,7 @@
     position: absolute;
     border-radius: 1vh;
     border: 0.2vh solid red;
-    background-color: white;
+    fill: white;
     color: black;
     line-height: 1.7vh;
     font-size: 1vh;
@@ -139,34 +119,43 @@
 .popup.input .drawing .dim.fail,
 .popup.input .drawing .dimreq.fail,
 .popup.input .multiples .multiple.fail {
+    stroke: #f33f3c;
+    fill: #dc54518c;
     border-color: #f33f3c;
     background-color: #dc54518c;
 }
 .popup.input .drawing .dim.fail:hover,
 .popup.input .multiples .multiple.fail:hover {
     transform: scale(1.05);
+    fill: #ef8c8a8c;
     background-color: #ef8c8a8c;
 }
 .popup.input .drawing .dim.done,
 .popup.input .drawing .dimreq.done,
 .popup.input .multiples .multiple.done {
+    stroke: #36ef40;
+    fill: #59d45f8c;
     border-color: #36ef40;
     background-color: #59d45f8c;
 }
 .popup.input .drawing .dim.done:hover,
 .popup.input .multiples .multiple.done:hover {
     transform: scale(1.05);
+    fill: #93f1988c;
     background-color: #93f1988c;
 }
 .popup.input .drawing .dim.insp,
 .popup.input .drawing .dimreq.insp,
 .popup.input .multiples .multiple.insp {
+    stroke: #ffda06;
+    fill: #f8de498c;
     border-color: #ffda06;
     background-color: #f8de498c;
 }
 .popup.input .drawing .dim.insp:hover,
 .popup.input .multiples .multiple.insp:hover {
     transform: scale(1.05);
+    fill: #f5e4838c;
     background-color: #f5e4838c;
 }
 .popup.input .multiples .multiple:active {
@@ -174,18 +163,17 @@
 }
 
 .popup.input .buttons {
-    align-items: center;
+    position: absolute;
+    justify-content: center;
+    width: 100%;
+    z-index: 1;
+    padding-top: 1vh;
+    gap: 2vh;
 }
 
-.popup.input .zoomin,
-.popup.input .zoomfit,
-.popup.input .zoomout {
-    width: 10vh;
-    height: 8vh;
-    font-size: 3vh;
-    line-height: 8vh;
-    text-align: center;
-    margin: 0 1vh;
+.popup.input .buttons img {
+    height: 4vh;
+    margin: 1vh 2vh;
 }
 
 .popup.input .info1,
@@ -250,6 +238,12 @@
 .popup.input .controls .input {
     flex-grow: 1;
     justify-content: center;
+    padding: 2vh;
+    gap: 2vh;
+}
+
+.popup.input .controls .input > .section {
+    gap: 1.5vh;
 }
 
 .popup.input .controls .serial,
@@ -259,17 +253,14 @@
     font-size: 3vh;
     text-align: center;
     width: 40vh;
-    margin: 2vh 2vh;
     padding: 1vh;
     resize: none;
 }
 
 .popup.input .controls .attach {
-    margin: 0 2vh;
-    width: 40.4vh;
+    width: 40.6vh;
     border: 0.2vh;
     line-height: 4vh;
-    bottom: 1vh;
 }
 
 @keyframes pulsate {

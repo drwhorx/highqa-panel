@@ -28,6 +28,7 @@
     flex-grow: 1;
     justify-content: space-between;
     z-index: 100;
+    position: relative;
 }
 #title > .section {
     width: 40vh;
@@ -35,11 +36,6 @@
     justify-content: center;
     line-height: 7.5vh;
     font-size: 3vh;
-}
-#title .keyboard {
-    padding: 0 2vh;
-    height: 6vh;
-    line-height: 6vh;
 }
 .section {
     display: flex;

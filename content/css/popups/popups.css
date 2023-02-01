@@ -29,6 +29,25 @@
 .message.popup .clicky {
     padding: 1vh;
 }
-#title > .loading .progress {
+
+#message {
+    top: 0;
+    height: 0;
+    width: 100%;
+    position: absolute;
+}
+#message .text {
+    line-height: 5vh;
+    z-index: 10000;
+    font-size: 3vh;
+    justify-content: center;
+    background-color: #666;
+    transform: translateY(3.75vh);
+    width: fit-content;
+    min-width: 50vh;
+    padding: 0 2vh;
+    margin: auto;
+}
+#title .loading .progress {
     top: 1.75vh;
 }

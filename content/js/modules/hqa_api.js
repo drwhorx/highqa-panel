@@ -18,8 +18,10 @@ class POST {
                 this.res = await $.ajax({
                     url: route + this.path,
                     type: 'POST',
-                    data: JSON.stringify(this.req),
-                    contentType: "application/json; charset=utf-8",
+                    data: this.path == "filestorage/upload" ? this.req
+                        : JSON.stringify(this.req),
+                    contentType: this.path == "filestorage/upload" ? false : "application/json; charset=utf-8",
+                    processData: this.path != "filestorage/upload",
                     xhrFields: this.path == "filestorage/download" ? ({
                         responseType: 'blob'
                     }) : null,
@@ -29,6 +31,10 @@ class POST {
                     }
                 });
             } catch (err) {
+                if (err.status != 401) {
+                    success = true;
+                    this.res = err.responseJSON
+                }
                 await timeout(500);
             }
             if (!success)
@@ -106,6 +112,9 @@ const APIreq = {
             "PartCategoryGUID": ""
         }
     },
+    "parts/importxdf": {
+        "FileGUID": ""
+    },
     "jobs/set": {
         "InputJob": {
             "GUID": "",
@@ -135,6 +144,9 @@ const APIreq = {
         "DeliveryDateTo": null,
         "Page": "",
         "PageSize": 0
+    },
+    "jobs/delete": {
+        "JobGUIDs": ""
     },
     "lots/list": {
         "Number": "",
@@ -334,6 +346,7 @@ const APIreq = {
         "Page": "",
         "PageSize": 0
     },
+    "filestorage/upload": null,
     "filestorage/token": {
         "GUID": ""
     },

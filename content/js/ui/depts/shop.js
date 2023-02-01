@@ -7,12 +7,13 @@ $(window).on("load", () => {
 
         }),
 
+        nav: () => shop.jobs.open(),
         card: shop.$("> .tile > .card").ext((card) => ({
 
-        })).nav(() => shop.jobs.open()),
+        })).nav(() => shop.nav ? shop.nav() : null),
 
         info1: shop.$("> .tile > .info1").ext((info1) => ({
-            pdf: info1.$("img.pdf").ext((pdf) => ({
+            pdf: info1.$(".pdf.copy").ext((pdf) => ({
                 div: info1.$("div.pdf"),
                 loading: info1.$(".loading"),
                 load: async function () {
@@ -47,7 +48,7 @@ $(window).on("load", () => {
             reload: info2.$(".reload").nav(async () => {
                 shop.planner.fadeout();
                 shop.planner.hide();
-                shop.card.nav();
+                shop.nav = null;
                 loading(true);
 
                 clear(user.job.results);
@@ -62,7 +63,7 @@ $(window).on("load", () => {
                 shop.planner.load();
                 await shop.planner.fadein();
                 loading(false);
-                shop.card.nav(shop.planner.close);
+                shop.nav = shop.planner.close;
             }),
             fpi: info2.$(".fpi").nav(async () => {
                 let sample = user.job.lots.fpi.samples[0];
@@ -111,7 +112,7 @@ $(window).on("load", () => {
             })),
             open: async function () {
                 loading(true);
-                shop.card.nav();
+                shop.nav = null;
                 let hide = depts.tiles.not(shop.tile);
 
                 await hide.fadeout();
@@ -122,17 +123,18 @@ $(window).on("load", () => {
                     shop.tile.width("30vh"),
                 ]);
 
-                shop.card.nav(jobs.close);
-                let res = await jobs.query.run();
-                if (res == "cancelled") return;
-
-                jobs.load()
-                shop.card.nav();
-
-                loading(false);
-                await jobs.fadein();
-                hide.hide();
-                shop.card.nav(jobs.close);
+                shop.nav = jobs.close;
+                (async () => {
+                    let res = await jobs.query.run();
+                    if (res == "cancelled") return;
+                    jobs.load()
+                    shop.nav = null;
+    
+                    loading(false);
+                    await jobs.fadein();
+                    hide.hide();
+                    shop.nav = jobs.close;
+                })();
             },
             query: task(query_basic),
             load: function () {
@@ -141,7 +143,7 @@ $(window).on("load", () => {
 
                 grid.rows().remove();
                 let sorted = raw(model.job)
-                    .filter(e => e.get["PartDeleted"] == 0)
+                    .filter(e => e.get["PartDeleted"] == 0 && e.get["Status"] == 1)
                     .sort((a, b) => b.get["Number"].replace("22J", "")
                         .localeCompare(a.get["Number"].replace("22J", "")))
 
@@ -173,7 +175,7 @@ $(window).on("load", () => {
             close: async function () {
                 jobs.query.cancel();
                 loading(true);
-                shop.card.nav();
+                shop.nav = null;
                 let show = depts.tiles.not(shop.tile);
 
                 await jobs.fadeout();
@@ -189,7 +191,7 @@ $(window).on("load", () => {
 
                 loading(false);
                 await show.fadein();
-                shop.card.nav(jobs.open);
+                shop.nav = jobs.open;
             }
         })),
         ops: shop.$("> .ops").ext((ops) => ({
@@ -200,7 +202,7 @@ $(window).on("load", () => {
             })),
             open: async function (row) {
                 loading(true);
-                shop.card.nav();
+                shop.nav = null;
 
                 await shop.jobs.fadeout();
                 shop.jobs.hide();
@@ -213,22 +215,24 @@ $(window).on("load", () => {
                 user.job = $(row).prop("model");
                 shop.info1.jobNo.text("Job #: " + user.job.get["Number"]);
                 shop.info1.partNo.text("Part #: " + user.job.part.get["PartNumber"]);
-                shop.info1.$(".pdf.clone").remove();
+                shop.info1.$(".clone").remove();
                 shop.info1.pdf.div.hide();
                 shop.info1.pdf.loading.fadein();
                 shop.info1.fadein();
 
-                shop.card.nav(ops.close);
-                let res = await ops.query.run();
-                if (res == "cancelled") return;
+                shop.nav = ops.close;
+                (async () => {
+                    let res = await ops.query.run();
+                    if (res == "cancelled") return;
 
-                shop.card.nav();
-                shop.info1.pdf.load();
-                ops.load();
+                    shop.nav = null;
+                    shop.info1.pdf.load();
+                    ops.load();
 
-                loading(false);
-                await ops.fadein();
-                shop.card.nav(ops.close);
+                    loading(false);
+                    await ops.fadein();
+                    shop.nav = ops.close;
+                })();
             },
             query: task(async (valid) => {
                 await all([
@@ -255,7 +259,7 @@ $(window).on("load", () => {
             close: async function () {
                 ops.query.cancel();
                 loading(true);
-                shop.card.nav();
+                shop.nav = null;
 
                 await all([
                     shop.info1.fadeout(),
@@ -272,7 +276,7 @@ $(window).on("load", () => {
 
                 loading(false);
                 await shop.jobs.fadein();
-                shop.card.nav(shop.jobs.close);
+                shop.nav = shop.jobs.close;
             }
         })),
         planner: shop.$("> .planner").ext((planner) => ({
@@ -285,7 +289,7 @@ $(window).on("load", () => {
                     ui.prompts.spc.load(dim);
                     return await ui.prompts.open(ui.prompts.spc);
                 }),
-                sample: grid.$(".sample").nav(async function () {
+                sample: grid.$(".sample.copy").nav(async function () {
                     let sample = $(this).prop("model");
                     user.sample = sample;
                     if (!user.login)
@@ -301,7 +305,7 @@ $(window).on("load", () => {
             })),
             open: async function (row) {
                 loading(true);
-                shop.card.nav();
+                shop.nav = null;
 
                 await all([
                     shop.ops.fadeout(),
@@ -326,7 +330,7 @@ $(window).on("load", () => {
                     shop.info2.fadein(),
                     planner.fadein()
                 ]);
-                shop.card.nav(planner.close);
+                shop.nav = planner.close;
             },
             load: function () {
                 let job = user.job;
@@ -346,7 +350,7 @@ $(window).on("load", () => {
                     cell.prop("model", cols[i])
                     row.append(cell);
                 }
-                let headers = planner.find(".sample.clone");
+                let headers = planner.find(".sample");
 
                 for (let i = 0; i < rows.length; i++) {
                     let row = planner.grid.copy.dupe();
@@ -370,7 +374,7 @@ $(window).on("load", () => {
             },
             close: async function () {
                 loading(true);
-                shop.card.nav();
+                shop.nav = null;
 
                 await all([
                     planner.fadeout(),
@@ -388,7 +392,7 @@ $(window).on("load", () => {
                     shop.ops.fadein(),
                     shop.info1.fadein()
                 ]);
-                shop.card.nav(shop.ops.close);
+                shop.nav = shop.ops.close;
             }
         }))
     }));

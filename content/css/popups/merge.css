@@ -1,0 +1,64 @@
+.popup.merge {
+    gap: 2vh;
+}
+.popup.merge .controls {
+    height: 5vh;
+    gap: 2vh;
+    flex-grow: 1;
+    justify-content: center;
+    padding: 2vh;
+}
+.popup.merge .controls .clicky {
+    font-size: 3vh;
+    line-height: 5vh;
+    padding: 0 2vh;
+}
+.popup.merge .from,
+.popup.merge .to {
+    height: 80vh;
+    overflow: hidden;
+}
+.popup.merge .display {
+    gap: 5vh;
+    width: 151vh;
+}
+.popup.merge .title {
+    font-size: 3vh;
+    line-height: 6vh;
+    justify-content: center;
+    z-index: 1;
+}
+.popup.merge svg {
+    border-radius: 1vh;
+    flex-shrink: 0;
+    scroll-snap-align: center;
+}
+.popup.merge .drawings {
+    overflow-y: auto;
+    overflow-x: hidden;
+    gap: 4vh;
+    width: 65vh;
+    height: 65vh;
+    padding: 30vh 4vh;
+    scroll-snap-type: y mandatory;
+}
+
+.popup.merge .dim {
+    cursor: pointer;
+    transition: transform .1s, fill .1s;
+}
+
+.popup.merge .dim.done {
+    stroke: #36ef40;
+    fill: #59d45f8c;
+}
+.popup.merge .dim.done:hover {
+    fill: #93f1988c;
+}
+.popup.merge .dim.todo {
+    stroke: #ffda06;
+    fill: #f8de498c;
+}
+.popup.merge .dim.todo:hover {
+    fill: #f5e4838c;
+}

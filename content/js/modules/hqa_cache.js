@@ -131,6 +131,10 @@ const query_part = async (part, { do_drawings }, valid) => {
     return valid();
 }
 
+const query_daily = async (results, valid) => {
+    
+}
+
 const load_companies = function (get_companies) {
     return get_companies.map(res => 
         models.company(res)
@@ -153,7 +157,7 @@ const load_parts = function (get_parts) {
 
 const load_jobs = function (get_jobs) {
     return get_jobs.map(res => {
-        if (!model.part[res["PartGUID"]] || res["Status"] != 1) return;
+        if (!model.part[res["PartGUID"]]) return;
         let job = models.job(res);
         let part = job.part = model.part[res["PartGUID"]];
         part.job = job;
@@ -211,7 +215,11 @@ const load_files = function (get_files) {
         let file = model.file[res["GUID"]];
         if (res["ResultGUID"]) return file;
         let url = window.URL.createObjectURL(file.get["Blob"]);
-        let pdf = await pdfjsLib.getDocument({ url, maxImageSize: 2147500037 }).promise;
+        pdfjsLib.disableFontFace = true;
+        let pdf = await pdfjsLib.getDocument({
+            url, maxImageSize: 2147500037,
+            disableFontFace: true
+        }).promise;
         file.pdf = pdf;
         return file;
     }));
@@ -222,8 +230,10 @@ const load_drawings = function (get_drawings) {
         let drawing = models.drawing(res);
         let file = drawing.file = model.file[res["DrawingFile"]];
         let part = drawing.part = file.part;
+        let mfg = drawing.mfg = model.mfg[res["OperationGUID"]];
         file?.drawings.push(drawing);
         part?.drawings.push(drawing);
+        mfg?.drawings.push(drawing);
     }
 
     return all(get_drawings.map(async res => {
@@ -302,6 +312,7 @@ const load_results = function (get_results) {
         let result = models.result(res);
         let sample = result.sample = model.sample[res["SampleGUID"]];
         let dim = result.dim = model.dim[res["DimGUID"]];
+        if (!dim) console.log(result);
         let mfg = result.mfg = dim.mfg;
         let lot = result.lot = sample.lot;
         let job = result.job = lot.job;
@@ -344,12 +355,11 @@ const unload_files = function (files) {
 
 const await_file = async (input, valid) => {
     return await new Promise(resolve => {
-        var int;
-        input.one("change", (e) =>{
+        input.one("change", (e) => {
             resolve(valid() && e.target.files);
         }).trigger("click");
-        int = setInterval(() =>
-            !valid() ? resolve(clearInterval(int)) : null
-        , 300);
+        setTimeout(() => $("body").one("click", () => {
+            resolve("cancelled");
+        }), 1000);
     });
 }

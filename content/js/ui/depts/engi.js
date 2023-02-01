@@ -29,9 +29,10 @@ $(window).on("load", () => {
             }))
         })),
 
+        nav: () => engi.actions.open(),
         card: engi.$("> .tile > .card").ext((card) => ({
 
-        })).nav(() => engi.actions.open()),
+        })).nav(() => engi.nav ? engi.nav() : null),
 
         actions: engi.$("> .actions").ext((actions) => ({
             make: actions.$(".make.card")
@@ -50,7 +51,6 @@ $(window).on("load", () => {
             query: task(query_basic),
             open: async () => {
                 loading(true);
-                engi.card.nav();
                 let hide = depts.tiles.not(engi.tile);
 
                 await hide.fadeout();
@@ -65,13 +65,10 @@ $(window).on("load", () => {
                 loading(false);
                 await actions.fadein();
                 hide.hide();
-                engi.card.nav(actions.close);
+                engi.nav = actions.close;
             },
-
             close: async function () {
-                actions.xdfx.task.cancel();
                 loading(true);
-                engi.card.nav();
                 let show = depts.tiles.not(engi.tile);
 
                 await actions.fadeout();
@@ -86,18 +83,15 @@ $(window).on("load", () => {
 
                 loading(false);
                 await show.fadein();
-                engi.card.nav(actions.open);
+                engi.nav = actions.open;
             },
         })),
-
         parts: engi.$("> .parts").ext((parts) => ({
             grid: parts.$(".grid").grid(),
             open: async (action) => {
                 let actions = engi.actions;
-                actions.xdfx.task.cancel();
                 loading(true);
-                engi.card.nav();
-
+                engi.nav = null;
                 await actions.fadeout();
                 actions.hide();
                 await all([
@@ -108,7 +102,7 @@ $(window).on("load", () => {
                 parts.load(action);
                 loading(false);
                 await parts.fadein();
-                engi.card.nav(parts.close);
+                engi.nav = parts.close;
             },
             load: function () {
                 let grid = parts.grid;
@@ -139,8 +133,7 @@ $(window).on("load", () => {
             },
             close: async () => {
                 loading(true);
-                engi.card.nav();
-
+                engi.nav = null;
                 await parts.fadeout();
                 parts.hide();
                 await all([
@@ -150,7 +143,7 @@ $(window).on("load", () => {
 
                 loading(false);
                 await engi.actions.fadein();
-                engi.card.nav(engi.actions.close);
+                engi.nav = engi.actions.close;
             }
         })),
         make: engi.$("> .make").ext((make) => ({
@@ -169,7 +162,7 @@ $(window).on("load", () => {
                     return make.dueDate.toggleClass("invalid", true);
 
                 loading(true);
-                engi.card.nav();
+                engi.nav = null;
 
                 query = API("parts/clone");
                 query.req["PartGUID"] = user.part.get["GUID"];
@@ -212,7 +205,7 @@ $(window).on("load", () => {
                 let job = load_jobs([res])[0];
                 await query_job(job, {}, () => true);
 
-                let mfg = part.mfgs.arr.find(e => e.get["Title"] == make.process.val());
+                /*
                 query = API("operations/set");
                 query.req["InputOperation"] = {
                     "GUID": mfg.get["GUID"],
@@ -227,6 +220,8 @@ $(window).on("load", () => {
                 }
                 await query.send();
                 mfg.get["Title"] = "IN PROCESS";
+                */
+                let mfg = part.mfgs.arr.find(e => e.get["Title"] == make.process.val());
                 part.mfgs.mfg = mfg;
 
                 await all(job.lots.arr.map(async lot => {
@@ -331,15 +326,13 @@ $(window).on("load", () => {
                     await create.send();
                 }));
 
-                ui.prompts.message.load("Job Created!");
-                ui.prompts.open(ui.prompts.message);
+                ui.message.open("Job Created!");
                 loading(false);
-                engi.card.nav(engi.make.close);
+                engi.nav = engi.make.close;
             }),
             open: async (row) => {
                 loading(true);
-                engi.card.nav();
-
+                engi.nav = null;
                 await engi.parts.fadeout();
                 engi.parts.hide();
                 await all([
@@ -354,18 +347,20 @@ $(window).on("load", () => {
                 engi.tile.pdf.div.hide();
                 engi.tile.pdf.loading.fadein();
                 engi.tile.pdf.fadein();
+                engi.nav = make.close;
 
-                engi.card.nav(make.close);
-                let res = await make.query.run();
-                if (res == "cancelled") return;
+                (async () => {
+                    let res = await make.query.run();
+                    if (res == "cancelled") return;
 
-                engi.card.nav();
-                engi.tile.pdf.load();
-                engi.make.load();
+                    engi.nav = null;
+                    engi.tile.pdf.load();
+                    engi.make.load();
 
-                loading(false);
-                await make.fadein();
-                engi.card.nav(make.close);
+                    loading(false);
+                    await make.fadein();
+                    engi.nav = make.close;
+                })();
             },
             query: task(async (valid) => {
                 await query_part(user.part, { do_drawings: true }, valid);
@@ -373,7 +368,7 @@ $(window).on("load", () => {
             }),
             load: () => {
                 let mfgs = user.part.mfgs.arr;
-                make.process.$("option.clone").remove();
+                make.process.$("option").remove();
                 for (let mfg of mfgs) {
                     let dupe = make.process.copy.dupe();
                     dupe.text(mfg.get["Title"]);
@@ -384,10 +379,9 @@ $(window).on("load", () => {
                 make.process.val("");
             },
             close: async () => {
+                engi.nav = null;
                 make.query.cancel();
                 loading(true);
-                engi.card.nav();
-
                 await all([
                     engi.tile.pdf.fadeout(),
                     make.fadeout()
@@ -403,7 +397,7 @@ $(window).on("load", () => {
 
                 loading(false);
                 await engi.parts.fadein();
-                engi.card.nav(engi.parts.close);
+                engi.nav = engi.parts.close;
             }
         })),
         xdfx: engi.$("> .xdfx").ext((xdfx) => ({
@@ -414,17 +408,11 @@ $(window).on("load", () => {
                     let res = data["Dims"][dim.get["GUID"]];
                     if (res) res["DimTolClass"] = sample_letter(dim);
                 }
-                let a = $("<a>")
-                    .attr("href", await user.xdfx.write())
-                    .attr("download", user.xdfx.file.name.slice(0, -5) + "-Modified.xdfx")
-                    .css("display", "none")
-                a[0].click();
-                a.remove();
+                await user.xdfx.download();
             }),
             open: async (file) => {
                 loading(true);
-                engi.card.nav();
-
+                engi.nav = null;
                 await engi.actions.fadeout();
                 engi.actions.hide();
                 await all([
@@ -442,18 +430,20 @@ $(window).on("load", () => {
                 engi.tile.pdf.div.hide();
                 engi.tile.pdf.loading.fadein();
                 engi.tile.pdf.fadein();
+                engi.nav = xdfx.close;
 
-                engi.card.nav(xdfx.close);
-                let res = await xdfx.query.run();
-                if (res == "cancelled") return;
+                (async () => {
+                    let res = await xdfx.query.run();
+                    if (res == "cancelled") return;
 
-                engi.card.nav();
-                engi.tile.pdf.load();
-                engi.xdfx.load();
+                    engi.nav = null;
+                    engi.tile.pdf.load();
+                    engi.xdfx.load();
 
-                loading(false);
-                await xdfx.fadein();
-                engi.card.nav(xdfx.close);
+                    loading(false);
+                    await xdfx.fadein();
+                    engi.nav = xdfx.close;
+                })();
             },
             query: task(async (valid) => {
                 let data = user.xdfx.data;
@@ -466,9 +456,9 @@ $(window).on("load", () => {
 
             },
             close: async () => {
+                xdfx.query.cancel();
+                engi.nav = null;
                 loading(true);
-                engi.card.nav();
-
                 await all([
                     engi.tile.pdf.fadeout(),
                     xdfx.fadeout()
@@ -485,86 +475,333 @@ $(window).on("load", () => {
 
                 loading(false);
                 await engi.actions.fadein();
-                engi.card.nav(engi.actions.close);
+                engi.nav = engi.actions.close;
             }
         })),
         sync: engi.$("> .sync").ext((sync) => ({
-            from: sync.$(".from").ext((from) => ({
-                xdfx: null, part: null, job: null,
-                copy: from.$(".copy.xdfx"),
+            from: sync.$(".setup .from").ext((from) => ({
+                xdfx: null, parts: null, jobs: null,
+                copy: from.$(".copy.xdfx").nav(function () {
+                    $(this).val(!$(this).val());
+                    $(this).toggleClass("invalid", !$(this).val());
+                    from.$(".xdfx").not(this)
+                        .toggleClass("invalid", true)
+                        .val(false)
+                }),
                 add: from.$(".add").click(async () => {
                     let res = await from.task.run();
                     if (res == "cancelled") return;
+                    engi.nav = null;
+                    loading(true);
                     from.xdfx = await new XDFX(res[0]);
                     await from.xdfx.load();
-                    from.part = from.xdfx.model[0];
-                    from.job = from.part.job;
-                    
+
                     from.$(".clone").remove();
-                    let dupe = from.copy.dupe();
-                    dupe.$(".partNo").text(from.part["PartNumber"]);
-                    dupe.$(".jobNo").text(from.job["JobNumber"]);
-                    dupe.hide();
-                    from.append(dupe);
-                    dupe.fadein();
+                    from.parts = from.xdfx.model;
+                    from.jobs = from.parts.map(e => e.job).filter(e => !!e);
+                    for (let part of from.parts) {
+                        let dupe = from.copy.dupe();
+                        let job = part.job;
+                        dupe.$(".partNo").text(part.get["PartNumber"]);
+                        dupe.$(".jobNo").text(job?.get["JobNumber"])
+                            .hide(job?.get["Status"] != 1);
+                        dupe.prop("model", part);
+                        dupe.hide();
+                        from.append(dupe);
+                    }
+                    from.$(".clone").fadein();
+                    loading(false);
+                    engi.nav = sync.close;
                 }),
                 task: task(async valid => {
                     return await await_file(from.$("input"), valid);
                 })
             })),
-            to: sync.$(".to").ext((to) => ({
-                xdfx: null, parts: null, job: null,
+            to: sync.$(".setup .to").ext((to) => ({
+                xdfx: null, parts: null, jobs: null,
                 copy: to.$(".copy.xdfx"),
                 add: to.$(".add").click(async () => {
                     let res = await to.task.run();
                     if (res == "cancelled") return;
+                    engi.nav = null;
+                    loading(true);
                     to.xdfx = await new XDFX(res[0]);
-                    
+                    await to.xdfx.load();
+
                     to.$(".clone").remove();
-                    to.parts = raw(to.xdfx.data["Parts"]);
-                    to.jobs = raw(to.xdfx.data["WorkOrderLines"]);
+                    to.parts = to.xdfx.model;
+                    to.jobs = to.parts.map(e => e.job).filter(e => !!e);
                     for (let part of to.parts) {
                         let dupe = to.copy.dupe();
-                        let job = to.jobs.find(e => e["__GlobalID_JobPartID"] == part["GlobalID"]);
-                        dupe.$(".partNo").text(part["PartNumber"]);
-                        dupe.$(".jobNo").text(job && job["JobNumber"]);
+                        let job = part.job;
+                        dupe.$(".partNo").text(part.get["PartNumber"]);
+                        dupe.$(".jobNo").text(job?.get["JobNumber"])
+                            .hide(job?.get["Status"] != 1);
+                        dupe.prop("model", part);
                         dupe.hide();
                         to.append(dupe);
                     }
                     to.$(".clone").fadein();
+                    loading(false);
+                    engi.nav = sync.close;
                 }),
                 task: task(async valid => {
                     return await await_file(to.$("input"), valid);
                 }),
             })),
-            accept: sync.$(".accept").nav(async () => {
-                let data = from.xdfx.data;
-                let master = from.part;
-                let job = from.job;
-                let dims = raw(data["Dims"]).filter(e => e["__GlobalID_DimPartID"] == master["GlobalID"]);
-                
-                for (let res of to.parts) {
-                    let part = model.part[res["GUID"]];
-                    for (let dim of dims) {
-                        let copy = raw(data["Dims"]).find(e => 
-                            e["__GlobalID_DimManProcessID"] == mfg["GlobalID"] && e["DimSort"] == dim["DimSort"]);
-                        if (!copy) {
-                            
-                            copy = Object.assign({}, dim);
-                            copy["__GlobalID_DimManProcessID"] = mfg["GlobalID"];
-                            copy["__GlobalID_DimPartID"] = part["GlobalID"];
+            merge: $(".merge.popup").ext((merge) => ({
+                back: merge.$(".back"),
+                next: merge.$(".next"),
+                select: merge.$(".back, .next").nav(async function () {
+                    let index = merge.to.parts.indexOf(merge.to.part);
+                    if ($(this).hasClass("invalid")) return;
+                    if (this == merge.back[0]) index -= 1;
+                    if (this == merge.next[0]) index += 1;
+                    await merge.set_part(merge.to.parts[index]);
+                }),
+                accept: merge.$(".accept").nav(async function () {
+                    if ($(this).hasClass("invalid")) return;
+                    await ui.prompts.close(merge, "accept");
+                }),
+                check: () => {
+                    merge.accept.toggleClass("invalid", !!merge.to.parts.find(p =>
+                        p.job?.results.find(r => !r.dim.from)
+                    ));
+                    merge.$(".dim").removeClass("done").addClass("todo");
+                    merge.to.$(".dim").each(function () {
+                        let from = $(this).prop("model").from;
+                        if (from) {
+                            $(this).removeClass("todo").addClass("done");
+                            merge.from.$(".dim").each(function () {
+                                if ($(this).prop("model") == from)
+                                    $(this).removeClass("todo").addClass("done");
+                            })
+                        }
+                    });
+                },
+                from: merge.$(".from").ext((from) => ({
+                    parts: null, part: null, pick: null,
+                    drawings: from.$(".drawings"),
+                    drawing: from.$(".drawing.copy"),
+                    dim: from.$(".dim.copy").nav(async function () {
+                        if (from.pick || merge.to.pick) return;
+                        from.pick = this;
+                        await from.$(".dim").not(this)
+                            .animate({ opacity: 0 }, 300).promise();
+                        let to = await new Promise(resolve => {
+                            merge.to.$(".dim").one("click", function () {
+                                resolve($(this).prop("model"));
+                            });
+                            $(this).one("click", () => resolve(null));
+                            merge.$(".back, .next").one("click", () => resolve(null));
+                        });
+                        if (to) to.from = $(this).prop("model");
+                        merge.check();
+                        await from.$(".dim").not(this)
+                            .animate({ opacity: 1 }, 300).promise();
+                        from.pick = null;
+                    })
+                })),
+                to: merge.$(".to").ext((to) => ({
+                    parts: null, part: null, pick: null,
+                    drawings: to.$(".drawings"),
+                    drawing: to.$(".drawing.copy"),
+                    dim: to.$(".dim.copy").nav(async function () {
+                        if (to.pick || merge.from.pick) return;
+                        to.pick = this;
+                        await to.$(".dim").not(this)
+                            .animate({ opacity: 0 }, 300).promise();
+                        let from = await new Promise(resolve => {
+                            merge.from.$(".dim").one("click", function () {
+                                resolve($(this).prop("model"));
+                            });
+                            $(this).one("click", () => resolve(null));
+                            merge.$(".back, .next").one("click", () => resolve(null));
+                        });
+                        $(this).prop("model").from = from;
+                        merge.check();
+                        await to.$(".dim").not(this)
+                            .animate({ opacity: 1 }, 300).promise();
+                        to.pick = null;
+                    }),
+                })),
+                set_part: async (part) => {
+                    let index = merge.to.parts.indexOf(part);
+                    merge.to.part = part;
+                    merge.from.part = merge.from.parts[index];
+                    merge.back.toggleClass("invalid", index == 0);
+                    merge.next.toggleClass("invalid", index == merge.to.parts.length - 1);
+
+                    await all([
+                        merge.to.fadeout(),
+                        merge.from.fadeout()
+                    ]);
+                    merge.to.$(".clone").remove();
+                    merge.to.$(".title").text(part.get["PartNumber"] +
+                        (part.job.get["Status"] == 1 ? " - " + part.job.get["JobNumber"] : "")
+                    );
+                    drawings = part.drawings
+                        .filter(e => e.dims.find(d => d.results.length > 0))
+                        .sort((a, b) => a.mfg.get["ManProcessIndex"] - b.mfg.get["ManProcessIndex"]
+                            || a.get["DrawingPageNo"] - b.get["DrawingPageNo"]
+                        );
+                    for (let drawing of drawings) {
+                        let dupe = merge.to.drawing.dupe();
+                        let dims = drawing.dims.filter(e => e.results.length > 0);
+                        drawing.draw_svg(dupe, dims);
+                        dupe.$(".dim").addClass("todo");
+                        merge.to.drawings.append(dupe);
+                    }
+
+                    part = merge.from.part;
+                    merge.from.$(".clone").remove();
+                    merge.from.$(".title").text(part.get["PartNumber"] +
+                        (part.job?.get["Status"] == 1 ? " - " + part.job.get["JobNumber"] : "")
+                    );
+                    drawings = part.drawings.sort((a, b) =>
+                        a.mfg?.get["ManProcessIndex"] - b.mfg?.get["ManProcessIndex"]
+                        || a.get["PdfPageNo"] - b.get["PdfPageNo"]
+                    );
+                    for (let drawing of drawings) {
+                        let dupe = merge.from.drawing.dupe();
+                        drawing.draw_svg(dupe);
+                        dupe.$(".dim").addClass("todo");
+                        merge.from.drawings.append(dupe);
+                    }
+                    merge.check();
+                    await all([
+                        merge.to.fadein(),
+                        merge.from.fadein()
+                    ]);
+                },
+                load: async (from, to) => {
+                    merge.$(".clone").remove();
+                    merge.from.parts = from;
+                    merge.to.parts = to;
+                    await merge.set_part(to[0]);
+                }
+            })),
+            jobs: sync.$(".jobs").nav(async () => {
+                let xdfx = sync.from.xdfx;
+                let data = xdfx.data;
+                let from = sync.from.$(".xdfx").not(".invalid").prop("model");
+                let to = sync.to.$(".xdfx").not(".invalid").map(function () {
+                    let part = $(this).prop("model");
+                    part.dims.map(e => e.from = null);
+                    return part;
+                }).get();
+                if (!from || to.length == 0) return;
+
+                loading(true);
+                let parts = await all(to.map(async to => {
+                    let query = API("parts/clone");
+                    query.req["CopyDocuments"] = true;
+                    query.req["PartGUID"] = from.get["GlobalID"];
+                    let res = await query.send();
+
+                    let copy = Object.assign({}, to.get);
+                    copy["GUID"] = copy["GlobalID"] = res["NewPartGUID"];
+                    let part = load_parts([copy])[0];
+                    await query_part(part, { do_drawings: true }, () => true);
+                    to.from = part;
+                    return part;
+                }));
+                loading(false);
+
+                sync.merge.load(parts, to);
+                var res = await ui.prompts.modal(sync.merge);
+                if (res != "accept") return;
+
+                loading(true);
+                await all(to.map(async to => {
+                    let part = to.from;
+                    part.job = to.job;
+
+                    /*
+                    var query = API("parts/delete");
+                    query.req["PartGUIDs"] = part.get["GlobalID"];
+                    query.req["DeleteCompletely"] = false;
+                    await query.send();
+                    */
+
+                    var query = API("jobs/list");
+                    query.req["PartGUIDs"] = part.get["GlobalID"];
+                    let res = (await query.pages())["Jobs"];
+
+                    data["Parts"][part.get["GlobalID"]] = part.get;
+
+                    if (!part.job) return;
+                    let job = Object.assign({}, part.job.get);
+                    job["GlobalID"] = res[0]["GUID"];
+                    for (let lot of part.job.lots.arr) {
+                        lot.get["__GlobalID_LotJobID"] = job["GlobalID"];
+                        data["Lots"][lot.get["GlobalID"]] = lot.get;
+                    }
+                    for (let sample of part.job.samples) {
+                        sample.get["__GlobalID_PartInstancePartID"] = part.get["GlobalID"];
+                        sample.get["__GlobalID_PartInstanceJobID"] = job["GlobalID"];
+                        data["PartInstances"][sample.get["GlobalID"]] = sample.get;
+                    }
+                    for (let result of part.job.results) {
+                        if (!result.dim.from) continue;
+                        let from = result.dim.from;
+                        result.get["__GlobalID_ActualDimID"] = from.get["GUID"];
+                        data["Actuals"][result.get["GlobalID"]] = result.get;
+                        if (result.serial) {
+                            result.serial.get["__GlobalID_NCRJobID"] = job["GlobalID"];
+                            data["NCReports"][result.serial.get["GlobalID"]] = result.serial.get;
                         }
                     }
+                    /*
+                    let samples = part.job.samples;
+                    await all(part.mfgs.mfg.dims.map(async dim => {
+                        let aql = sample_qty(dim.get["TolClass"], samples.length)
+                            || +dim.get["TolClass"];
+                        if (!aql) return;
+                        await all(samplize(aql, samples.length).map(async i => {
+                            let sample = samples[i];
+                            let query = API("placeholders/create");
+                            query.req["DimGUID"] = dim.get["GUID"];
+                            query.req["SampleGUIDs"] = sample.get["GUID"];
+                            await query.send();
+                        }));
+                    }));
+                    */
+                    job["__GlobalID_JobPartID"] = part.get["GUID"];
+                    data["WorkOrderLines"][job["GlobalID"]] = job;
+                    data["WorkOrderLines"][part.job.get["GlobalID"]] = part.job.get;
+                }));
+
+                await xdfx.write();
+                let form = new FormData();
+                let file = new File([xdfx.blob], xdfx.file.name);
+                form.append("files", file);
+
+                var query = API("filestorage/upload");
+                query.req = form;
+                var res = (await query.send())["GUID"];
+
+                var query = API("parts/importxdf");
+                query.req["FileGUID"] = res;
+                var res = await query.send();
+
+                if (res && res["IsSuccess"]) {
+                    await all(to.map(async to => {
+                        var query = API("parts/delete");
+                        query.req["PartGUIDs"] = to.get["GlobalID"] + "," + to.from.get["GUID"];
+                        query.req["DeleteCompletely"] = false;
+                        await query.send();
+                    }));
+                    ui.message.open("XDFX(s) Synced!");
+                } else {
+                    ui.message.open("Manual XDFX Upload Required");
                 }
-
-
-                let url = await to.xdfx.write();
-                window.open(url, "_blank");
+                loading(false);
+                await sync.from.xdfx.download();
             }),
             open: async () => {
                 loading(true);
-                engi.card.nav();
-
+                engi.nav = null;
                 await engi.actions.fadeout();
                 engi.actions.hide();
                 await all([
@@ -572,9 +809,10 @@ $(window).on("load", () => {
                     engi.tile.width("30vh")
                 ]);
 
+                sync.$(".clone").remove();
                 await sync.fadein();
                 loading(false);
-                engi.card.nav(sync.close);
+                engi.nav = sync.close;
             },
             load: () => {
                 from.$(".clone").remove();
@@ -584,8 +822,7 @@ $(window).on("load", () => {
             },
             close: async () => {
                 loading(true);
-                engi.card.nav();
-
+                engi.nav = null;
                 await sync.fadeout();
                 sync.hide();
                 await all([
@@ -595,7 +832,7 @@ $(window).on("load", () => {
 
                 loading(false);
                 await engi.actions.fadein();
-                engi.card.nav(engi.actions.close);
+                engi.nav = engi.actions.close;
             }
         }))
     }));
