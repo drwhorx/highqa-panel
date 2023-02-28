@@ -64,12 +64,7 @@ class XDFX {
         this.results();
     }
     async download() {
-        let a = $("<a>")
-            .attr("href", await this.write())
-            .attr("download", this.file.name.slice(0, -5) + "-Modified.xdfx")
-            .css("display", "none")
-        a[0].click();
-        a.remove();
+        download(await this.write(), this.file.name.slice(0, -5) + "-Modified.xdfx");
     }
     parts() {
         let parts = raw(this.data["Parts"]);
@@ -150,6 +145,7 @@ class XDFX {
             e["Nominal"] = e["DimData"];
             e["TypeText"] = types.Dim[e["DimType"]];
             e["TolTypeText"] = types.DimTol[e["DimTolType"]];
+            e["Units"] = e["DimUnits"];
         });
         return load_dims(dims);
     }

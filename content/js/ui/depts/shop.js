@@ -1,7 +1,7 @@
 $(window).on("load", () => {
     var menu = ui.menu;
     var depts = menu.depts;
-    
+
     ui.shop = menu.$("> .shop").ext((shop) => ({
         tile: shop.$("> .tile").extend({
 
@@ -13,33 +13,27 @@ $(window).on("load", () => {
         })).nav(() => shop.nav ? shop.nav() : null),
 
         info1: shop.$("> .tile > .info1").ext((info1) => ({
-            pdf: info1.$(".pdf.copy").ext((pdf) => ({
-                div: info1.$("div.pdf"),
+            jobNo: info1.$(".jobNo"),
+            partNo: info1.$(".partNo"),
+            pdf: info1.$(".copy.pdf").ext((pdf) => ({
+                div: info1.$(".scroll"),
                 loading: info1.$(".loading"),
                 load: async function () {
                     let drawings = user.job.part.drawings.sort((a, b) =>
                         a.get["Title"].localeCompare(b.get["Title"])
                         || a.get["PdfPageNo"] - b.get["PdfPageNo"]);
 
-                    let imgs = drawings.map((drawing, i) => {
+                    pdf.div.hide();
+                    drawings.map((drawing, i) => {
                         let img = pdf.dupe();
                         img.attr("src", drawing.png);
                         img.attr("tab-index", i);
-                        return img;
+                        pdf.div.append(img);
                     });
-
-                    for (let img of imgs) {
-                        img.div.append(img);
-                    }
-                    await pdf.loading.fadeout();
-                    pdf.loading.hide();
                     pdf.div.fadein();
                 }
-            })),
-            jobNo: info1.$(".jobNo"),
-            partNo: info1.$(".partNo")
+            }))
         })),
-
         info2: shop.$("> .tile > .info2").ext((info2) => ({
             jobNo: info2.$(".jobNo"),
             partNo: info2.$(".partNo"),
@@ -47,7 +41,6 @@ $(window).on("load", () => {
             opName: info2.$(".opName"),
             reload: info2.$(".reload").nav(async () => {
                 shop.planner.fadeout();
-                shop.planner.hide();
                 shop.nav = null;
                 loading(true);
 
@@ -73,31 +66,65 @@ $(window).on("load", () => {
                 return await ui.input.open();
             }),
             export: info2.$(".export").nav(async () => {
+                loading(true);
                 let book = XLSX.utils.book_new();
                 let results = user.op.dims.map(e => e.results)
                     .flat().sort((a, b) => a.sample.get["SerialNumber"].match(/\d+/)[0] - b.sample.get["SerialNumber"].match(/\d+/)[0] ||
                         a.dim.get["DimSort"].localeCompare(b.dim.get["DimSort"]));
-                XLSX.utils.book_append_sheet(book, XLSX.utils.table_to_sheet($("<table>")
-                    .append(
+                let zip = new JSZip();
+                XLSX.utils.book_append_sheet(book, XLSX.utils.table_to_sheet(
+                    $("<table>").append(
                         $("<tr>").append([
-                            "Dim #", "Requirement", "Sample #", "Result", "Status", "Operator", "S/N", "Comments", "Timestamp"
+                            "Dim #", "Requirement", "Sample #", "Result", "Status", "Operator", "S/N", "Comments", "Timestamp", "Attachments"
                         ].map(e => $("<td>").text(e)))
-                    )
-                    .append(results.map(e =>
-                        $("<tr>").append([
-                            e.dim.get["DimNo"],
-                            e.dim.get["Requirement"],
-                            e.sample.get["SerialNumber"],
-                            e.get["Data"],
-                            e.get["StatusText"],
-                            e.inspector?.get["FirstName"] + " " + e.inspector?.get["LastName"],
-                            e.serial?.get["ERPID"],
-                            e.serial?.get["Comments"],
-                            (new Date(e.get["InspectedDate"]) - new Date("01/01/1900")) / (1000 * 60 * 60 * 24)
-                        ].map(e => $("<td>").text(e)))
-                    ))[0]
+                    ).append(
+                        await all(results.map(async result => {
+                            let name = "";
+                            let files = await result.get_files(() => true);
+                            if (files.length > 1) {
+                                let zip2 = new JSZip();
+                                await all(files.map(async file => {
+                                    let index = file["Name"].lastIndexOf(".");
+                                    if (index < 0) index = file["Name"].length;
+                                    let name = file["GUID"] + file["Name"].slice(index);
+                                    await zip2.file(name, file["Blob"]);
+                                }));
+                                name = UUID() + ".zip";
+                                zip.file(name, await zip2.generateAsync({ type: "blob" }));
+                            }
+                            if (files.length == 1) {
+                                let file = files[0];
+                                let index = file["Name"].lastIndexOf(".");
+                                if (index < 0) index = file["Name"].length;
+                                name = file["GUID"] + file["Name"].slice(index);
+                                zip.file(name, file["Blob"]);
+                            }
+                            return $("<tr>").append([
+                                result.dim.get["DimNo"],
+                                result.dim.get["Requirement"],
+                                result.sample.get["SerialNumber"],
+                                result.get["Data"],
+                                result.get["StatusText"],
+                                result.inspector?.get["FirstName"] + " " + result.inspector?.get["LastName"],
+                                result.data["S/N"] || "",
+                                result.data["Comments"] || "",
+                                (new Date(result.get["InspectedDate"]) - new Date("01/01/1900")) / (1000 * 60 * 60 * 24),
+                                name
+                            ].map(cell => $("<td>").text(cell)))
+                        }))
+                    )[0]
                 ));
-                await XLSX.writeFile(book, user.job.get["Number"] + " - " + user.op.get["Code"] + ".xlsx");
+                if (raw(zip.files).length > 0) {
+                    let array = XLSX.write(book, { type: "array", bookType: 'xlsx' });
+                    let blob = new Blob([array]);
+                    let name = user.job.get["Number"] + " - " + user.op.get["Code"];
+                    zip.file(name + ".xlsx", blob);
+                    let url = URL.createObjectURL(await zip.generateAsync({ type: "blob" }));
+                    download(url, name + ".zip");
+                } else {
+                    await XLSX.writeFile(book, user.job.get["Number"] + " - " + user.op.get["Code"] + ".xlsx");
+                }
+                loading(false);
             }),
             repair: info2.$(".repair").nav(async () => {
                 await ui.prompts.modal(ui.quantity);
@@ -115,7 +142,7 @@ $(window).on("load", () => {
                 shop.nav = null;
                 let hide = depts.tiles.not(shop.tile);
 
-                await hide.fadeout();
+                await hide.fadeout(true);
                 await all([
                     menu.gap(0),
                     hide.width(0),
@@ -129,7 +156,7 @@ $(window).on("load", () => {
                     if (res == "cancelled") return;
                     jobs.load()
                     shop.nav = null;
-    
+
                     loading(false);
                     await jobs.fadein();
                     hide.hide();
@@ -144,8 +171,8 @@ $(window).on("load", () => {
                 grid.rows().remove();
                 let sorted = raw(model.job)
                     .filter(e => e.get["PartDeleted"] == 0 && e.get["Status"] == 1)
-                    .sort((a, b) => b.get["Number"].replace("22J", "")
-                        .localeCompare(a.get["Number"].replace("22J", "")))
+                    .sort((a, b) => b.get["Number"].replace(/..J/gi, "")
+                        .localeCompare(a.get["Number"].replace(/..J/gi, "")))
 
                 for (let job of sorted) {
                     let part = job.part;
@@ -179,7 +206,6 @@ $(window).on("load", () => {
                 let show = depts.tiles.not(shop.tile);
 
                 await jobs.fadeout();
-                jobs.hide();
                 show.show();
                 await all([
                     shop.gap(0),
@@ -205,7 +231,6 @@ $(window).on("load", () => {
                 shop.nav = null;
 
                 await shop.jobs.fadeout();
-                shop.jobs.hide();
                 await all([
                     shop.tile.width("95vh"),
                     shop.card.height("17.5vh"),
@@ -225,9 +250,10 @@ $(window).on("load", () => {
                     let res = await ops.query.run();
                     if (res == "cancelled") return;
 
+                    await shop.info1.pdf.loading.fadeout();
                     shop.nav = null;
                     shop.info1.pdf.load();
-                    ops.load();
+                    shop.ops.load();
 
                     loading(false);
                     await ops.fadein();
@@ -265,9 +291,6 @@ $(window).on("load", () => {
                     shop.info1.fadeout(),
                     ops.fadeout()
                 ]);
-                shop.info1.hide();
-                shop.info1.pdf.div.hide();
-                ops.hide();
                 await all([
                     shop.card.height("85vh"),
                     shop.tile.gap(0),
@@ -292,16 +315,71 @@ $(window).on("load", () => {
                 sample: grid.$(".sample.copy").nav(async function () {
                     let sample = $(this).prop("model");
                     user.sample = sample;
-                    if (!user.login)
-                        if (await ui.prompts.modal(ui.login) == "cancel") return;
+                    if (!user.login) {
+                        await ui.people.logins.open();
+                        if (await ui.prompts.modal(ui.people) == "cancel") return;
+                    }
+                    try {
+                        loading(true);
+                        let job = (await RealTrac.get_job({ jobNo: user.job.get["Number"] }))[0];
+                        let employee = await RealTrac.get_employee({ employeeNo: user.login.get["EmployeeID"] });
+                        if (!employee || !job) throw(null);
+                        let sessions = await RealTrac.get_employee_sessions(employee.id);
+                        for (let session of sessions) {
+                            let op = await RealTrac.get_op({ opID: session.router_id });
+                            if (job.id == op.job_id) {
+                                let station = await RealTrac.get_station({ stationID: session.workStation_id });
+                                ui.people.reset()
+                                await ui.people.logins.load();
+                                ui.people.options.user = employee;
+                                await ui.people.options.load();
+                                ui.people.session.user = employee;
+                                ui.people.session.job = job;
+                                ui.people.session.op = op;
+                                ui.people.session.station = station;
+                                ui.people.session.session = session;
+                                await ui.people.session.edit.open();
+                                loading(false);
+                                await ui.prompts.modal(ui.people);
+                                throw(null);
+                            }
+                        }
+                    } catch (err) {
+                        console.log(err);
+                    }
+                    loading(false);
                     await ui.input.open();
                 }),
-                plan: grid.$(".plan").hover(function (e) {
-                    let tbl_samp = $(this).prop("tbl_samp");
-                    $(tbl_samp).addClass("hover");
-                }, async (e) => {
-                    grid.$(".hover").removeClass("hover")
-                })
+                pick: false,
+                dragging: false,
+                plan: grid.$(".plan.copy").off("hover pointerdown pointermove")
+                    .hover(function (e) {
+                        let sample = $(this).prop("sample");
+                        $(sample).addClass("hover");
+                    }, async (e) => {
+                        grid.$(".hover").removeClass("hover")
+                    }).on("mousedown", function (e) {
+                        if (e.button > 0) return;
+                        grid.dragging = true;
+                        grid.pick = !$(this).hasClass("pick");
+                        $(this).toggleClass("pick", grid.pick);
+                    }).on("mousemove", function () {
+                        if (!grid.dragging) return;
+                        $(this).toggleClass("pick", grid.pick);
+                    }).on("mouseup", async function (e) {
+                        if (e.button > 0) return;
+                        grid.dragging = false;
+                        let action = shop.info2.$(".action");
+                        let modify = shop.info2.$(".modify");
+                        if (grid.pick && action.is(":visible")) {
+                            await action.fadeout();
+                            await modify.fadein();
+                        }
+                        if (!grid.pick && !grid.$(".pick").get(0)) {
+                            await modify.fadeout();
+                            await action.fadein();
+                        }
+                    })
             })),
             open: async function (row) {
                 loading(true);
@@ -311,8 +389,6 @@ $(window).on("load", () => {
                     shop.ops.fadeout(),
                     shop.info1.fadeout()
                 ]);
-                shop.info1.hide();
-                shop.ops.hide();
                 await all([
                     shop.tile.width("30vh"),
                     shop.card.height("30vh"),
@@ -326,9 +402,13 @@ $(window).on("load", () => {
 
                 loading(false);
                 planner.load();
+                let modify = shop.info2.$(".modify");
+                let action = shop.info2.$(".action");
                 await all([
                     shop.info2.fadein(),
-                    planner.fadein()
+                    planner.fadein(),
+                    modify.fadeout(),
+                    action.fadein()
                 ]);
                 shop.nav = planner.close;
             },
@@ -346,11 +426,11 @@ $(window).on("load", () => {
                 for (let i = 0; i < cols.length; i++) {
                     let row = planner.grid.head;
                     let cell = row.copy.dupe();
-                    cell.span(cols[i].get["SerialNumber"]);
+                    cell.span(cols[i].get["SerialNumber"].replace("_Scrap", ""));
                     cell.prop("model", cols[i])
                     row.append(cell);
                 }
-                let headers = planner.find(".sample");
+                let headers = planner.$(".sample");
 
                 for (let i = 0; i < rows.length; i++) {
                     let row = planner.grid.copy.dupe();
@@ -364,8 +444,8 @@ $(window).on("load", () => {
                         let holder = dim.holders.find(e => e.sample == cols[j]);
                         let result = dim.get_result(cols[j]);
                         cell.addClass(dim.get_status(cols[j]));
-                        cell.prop("tbl_dim", row.$(".left"));
-                        cell.prop("tbl_samp", headers[j]);
+                        cell.prop("dim", row.$(".left"));
+                        cell.prop("sample", headers[j]);
                         cell.prop("model", result || holder);
                         row.append(cell);
                     }
@@ -380,8 +460,6 @@ $(window).on("load", () => {
                     planner.fadeout(),
                     shop.info2.fadeout()
                 ]);
-                shop.info2.hide();
-                planner.hide();
                 await all([
                     shop.tile.width("95vh"),
                     shop.card.height("17.5vh")

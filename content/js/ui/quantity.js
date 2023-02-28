@@ -22,38 +22,34 @@ $(window).on("load", () => {
                 .sort((a, b) => a.get["SerialNumber"].replace(/\D+/g, '')
                     - b.get["SerialNumber"].replace(/\D+/g, ''));
 
-            let index = mathjs.max(samples.findLastIndex(
-                e => e.results.find(r => dims.includes(r.dim))), 0);
-            let sample = samples[index];
-
             loading(true);
             await all(dims.map(async dim => {
                 let aql = sample_qty(dim.get["TolClass"], fixed)
                     || +dim.get["TolClass"] || dim.holders.length;
-                let next = !!sample.results.find(r => r.dim == dim);
-                let complete = samples.filter(e => e.results.find(
-                    r => r.dim == dim)).length;
-                let todo = aql - complete;
-                let possible = fixed - index - next;
-                await all(
-                    samples.slice(index + next).map(async sample => {
-                        let query = API("placeholders/delete");
-                        query.req["DimGUID"] = dim.get["GUID"];
-                        query.req["SampleGUIDs"] = sample.get["GUID"];
-                        await query.send();
-                    })
-                );
-                await all(
-                    samplize(todo, possible).map(async i => {
-                        let sample = samples[index + i + next];
-                        let query = API("placeholders/create");
-                        query.req["DimGUID"] = dim.get["GUID"];
-                        query.req["SampleGUIDs"] = sample.get["GUID"];
-                        await query.send();
-                    })
-                );
+                await all(samples.map(async sample => {
+                    let query = API("placeholders/delete");
+                    query.req["DimGUID"] = dim.get["GUID"];
+                    query.req["SampleGUIDs"] = sample.get["GUID"];
+                    await query.send();
+                }));
+                let plan = samplize(aql, fixed);
+                for (let i = 0; i < fixed; i++) {
+                    let sample = samples[i];
+                    if (!plan.includes(i) && sample.results.find(r => r.dim == dim)) {
+                        let index = plan.findIndex(j => !samples[j].results.find(r => r.dim == dim));
+                        if (index > -1) plan[index] = i;
+                    }
+                }
+                
+                await all(plan.map(async index => {
+                    let sample = samples[index];
+                    let query = API("placeholders/create");
+                    query.req["DimGUID"] = dim.get["GUID"];
+                    query.req["SampleGUIDs"] = sample.get["GUID"];
+                    await query.send();
+                }))
             }));
-            
+
             clear(user.job.holders);
             clear(user.job.lots.fpi?.holders);
             clear(user.job.lots.mfg?.holders);

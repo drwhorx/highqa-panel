@@ -211,10 +211,10 @@ const draw_spc = async (dim, x_chart, x_hist, r_chart, r_hist, options = {}) => 
                     tip.$(".timestamp").span(result.get["InspectedDate"] ?
                         $.format.date(result.get["InspectedDate"], "E MM/dd/yyyy h:mma") : "");
                     
-                    tip.$(".serial").span(result.serial?.get["ERPID"]);
-                    tip.$(".serial").closest(".row").show(!!result.serial?.get["ERPID"]);
-                    tip.$(".comment").span(result.serial?.get["Comments"]);
-                    tip.$(".comment").closest(".row").show(!!result.serial?.get["Comments"]);
+                    tip.$(".serial").span(result?.data["S/N"]);
+                    tip.$(".serial").closest(".row").show(!!result?.data["S/N"]);
+                    tip.$(".comment").span(result?.data["Comments"]);
+                    tip.$(".comment").closest(".row").show(!!result?.data["Comments"]);
                     tip.show();
 
                     let cy = y.invert($(point).attr("cy"));

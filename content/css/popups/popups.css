@@ -23,7 +23,7 @@
     gap: 2vh;
 }
 .message.popup .options {
-    justify-content: end;
+    justify-content: flex-end;
     gap: 2vh
 }
 .message.popup .clicky {

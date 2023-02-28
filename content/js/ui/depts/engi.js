@@ -4,26 +4,26 @@ $(window).on("load", () => {
 
     ui.engi = menu.$("> .engi").ext((engi) => ({
         tile: engi.$("> .tile").ext((tile) => ({
-            pdf: tile.$("> .pdf").ext((pdf) => ({
-                partNo: pdf.$(".partNo"),
-                loading: pdf.$(".loading"),
-                copy: pdf.$(".copy.pdf"),
-                div: pdf.$(".scroll"),
+
+        })),
+
+        info1: engi.$("> .tile > .info1").ext((info1) => ({
+            partNo: info1.$(".partNo"),
+            pdf: info1.$(".copy.pdf").ext((pdf) => ({
+                div: info1.$(".scroll"),
+                loading: info1.$(".loading"),
                 load: async function () {
                     let drawings = user.part.drawings.sort((a, b) =>
                         a.get["Title"].localeCompare(b.get["Title"])
                         || a.get["PdfPageNo"] - b.get["PdfPageNo"]);
 
+                    pdf.div.hide();
                     drawings.map((drawing, i) => {
-                        let img = pdf.copy.dupe();
+                        let img = pdf.dupe();
                         img.attr("src", drawing.png);
                         img.attr("tab-index", i);
-                        pdf.div.append(img)
-                        return img;
+                        pdf.div.append(img);
                     });
-
-                    await pdf.loading.fadeout();
-                    pdf.loading.hide();
                     pdf.div.fadein();
                 }
             }))
@@ -53,7 +53,7 @@ $(window).on("load", () => {
                 loading(true);
                 let hide = depts.tiles.not(engi.tile);
 
-                await hide.fadeout();
+                await hide.fadeout(true);
                 await all([
                     menu.gap(0),
                     hide.width(0),
@@ -72,7 +72,6 @@ $(window).on("load", () => {
                 let show = depts.tiles.not(engi.tile);
 
                 await actions.fadeout();
-                actions.hide();
                 show.show();
                 await all([
                     engi.gap(0),
@@ -135,7 +134,6 @@ $(window).on("load", () => {
                 loading(true);
                 engi.nav = null;
                 await parts.fadeout();
-                parts.hide();
                 await all([
                     engi.tile.width("40vh"),
                     engi.gap("15vh")
@@ -202,6 +200,22 @@ $(window).on("load", () => {
                     query.req["PartGUID"] = res["PartGUID"];
                     part = load_parts([(await query.send())["Part"]])[0];
                 }
+
+                query = API("parts/set");
+                query.req["InputPart"] = {
+                    "GUID": part.get["GUID"],
+                    "PartNumber": part.get["PartNumber"],
+                    "PartName": part.get["PartName"],
+                    "PartRevisionLevel": part.get["PartRevisionLevel"],
+                    "PartComments": part.get["PartComments"],
+                    "CustomerGUID": part.get["CustomerGUID"],
+                    "File": "",
+                    "ERPID": "",
+                    "BarcodeID": part.get["BarcodeID"],
+                    "PartCategoryGUID": part.get["PartCategoryGUID"]
+                }
+                await query.send();
+                
                 let job = load_jobs([res])[0];
                 await query_job(job, {}, () => true);
 
@@ -334,7 +348,6 @@ $(window).on("load", () => {
                 loading(true);
                 engi.nav = null;
                 await engi.parts.fadeout();
-                engi.parts.hide();
                 await all([
                     engi.tile.width("110vh"),
                     engi.card.height("17.5vh"),
@@ -342,19 +355,20 @@ $(window).on("load", () => {
                 ]);
 
                 user.part = $(row).prop("model");
-                engi.tile.pdf.partNo.text("Part #: " + user.part.get["PartNumber"]);
-                engi.tile.pdf.$(".pdf.clone").remove();
-                engi.tile.pdf.div.hide();
-                engi.tile.pdf.loading.fadein();
-                engi.tile.pdf.fadein();
+                engi.info1.partNo.text("Part #: " + user.part.get["PartNumber"]);
+                engi.info1.$(".pdf.clone").remove();
+                engi.info1.pdf.div.hide();
+                engi.info1.pdf.loading.fadein();
+                engi.info1.fadein();
                 engi.nav = make.close;
 
                 (async () => {
                     let res = await make.query.run();
                     if (res == "cancelled") return;
 
+                    await engi.info1.pdf.loading.fadeout();
                     engi.nav = null;
-                    engi.tile.pdf.load();
+                    engi.info1.pdf.load();
                     engi.make.load();
 
                     loading(false);
@@ -383,12 +397,9 @@ $(window).on("load", () => {
                 make.query.cancel();
                 loading(true);
                 await all([
-                    engi.tile.pdf.fadeout(),
+                    engi.info1.fadeout(),
                     make.fadeout()
                 ]);
-                make.hide();
-                engi.tile.pdf.hide();
-                engi.tile.pdf.div.hide();
                 await all([
                     engi.tile.width("30vh"),
                     engi.card.height("85vh"),
@@ -414,7 +425,6 @@ $(window).on("load", () => {
                 loading(true);
                 engi.nav = null;
                 await engi.actions.fadeout();
-                engi.actions.hide();
                 await all([
                     engi.tile.width("110vh"),
                     engi.card.height("17.5vh"),
@@ -425,19 +435,20 @@ $(window).on("load", () => {
                 user.xdfx = await new XDFX(file);
                 let data = user.xdfx.data;
 
-                engi.tile.pdf.partNo.text("Part #: " + raw(data["Parts"])[0]["PartNumber"]);
-                engi.tile.pdf.$(".pdf.clone").remove();
-                engi.tile.pdf.div.hide();
-                engi.tile.pdf.loading.fadein();
-                engi.tile.pdf.fadein();
+                engi.info1.partNo.text("Part #: " + raw(data["Parts"])[0]["PartNumber"]);
+                engi.info1.$(".pdf.clone").remove();
+                engi.info1.pdf.div.hide();
+                engi.info1.pdf.loading.fadein();
+                engi.info1.fadein();
                 engi.nav = xdfx.close;
 
                 (async () => {
                     let res = await xdfx.query.run();
                     if (res == "cancelled") return;
 
+                    await engi.info1.pdf.loading.fadeout();
                     engi.nav = null;
-                    engi.tile.pdf.load();
+                    engi.info1.pdf.load();
                     engi.xdfx.load();
 
                     loading(false);
@@ -460,12 +471,9 @@ $(window).on("load", () => {
                 engi.nav = null;
                 loading(true);
                 await all([
-                    engi.tile.pdf.fadeout(),
+                    engi.info1.fadeout(),
                     xdfx.fadeout()
                 ]);
-                xdfx.hide();
-                engi.tile.pdf.hide();
-                engi.tile.pdf.div.hide();
                 await all([
                     engi.tile.width("40vh"),
                     engi.card.height("85vh"),
@@ -753,23 +761,43 @@ $(window).on("load", () => {
                         }
                     }
                     /*
-                    let samples = part.job.samples;
-                    await all(part.mfgs.mfg.dims.map(async dim => {
-                        let aql = sample_qty(dim.get["TolClass"], samples.length)
-                            || +dim.get["TolClass"];
-                        if (!aql) return;
-                        await all(samplize(aql, samples.length).map(async i => {
+                    let samples = part.job.lots.mfg.samples
+                        .sort((a, b) => a.get["SerialNumber"].replace(/\D+/g, '')
+                            - b.get["SerialNumber"].replace(/\D+/g, ''));
+                    for (let dim of part.mfgs.mfg.dims) {
+                        let aql = sample_qty(dim.get["DimTolClass"], samples.length)
+                            || +dim.get["DimTolClass"];
+                        let plan = samplize(aql, samples.length);
+                        for (let i = 0; i < samples.length; i++) {
                             let sample = samples[i];
-                            let query = API("placeholders/create");
-                            query.req["DimGUID"] = dim.get["GUID"];
-                            query.req["SampleGUIDs"] = sample.get["GUID"];
-                            await query.send();
-                        }));
-                    }));
+                            if (!plan.includes(i) && sample.results.find(r => r.dim.from == dim)) {
+                                let index = plan.findIndex(j => !samples[j].results.find(r => r.dim.from == dim));
+                                if (index > -1) plan[index] = i;
+                            }
+                        }
+                        plan.push(-1);
+                        plan.map(index => {
+                            let sample = samples[index] || part.job.lots.fpi.samples[0];
+                            if (!sample) return;
+                            let holder = types.XDFX_Holder();
+                            holder["GlobalID"] = UUID();
+                            holder["ActualDataPrec"] = dim.get["DimDataPrec"];
+                            holder["ActualCode"] = dim.get["DimCode"];
+                            holder["ActualGroup"] = dim.get["DimGroup"];
+                            holder["ActualLowerTol"] = dim.get["DimLowerTol"];
+                            holder["ActualUpperTol"] = dim.get["DimUpperTol"];
+                            holder["ActualType"] = dim.get["DimType"];
+                            holder["__GlobalID_ActualDimID"] = dim.get["GlobalID"];
+                            holder["__GlobalID_ActualInstanceID"] = "740fbcb0-532a-42e9-b420-499df09a2c15";
+                            holder["__GlobalID_ActualPartInstanceID"] = sample.get["GlobalID"];
+                            data["Actuals"][holder["GlobalID"]] = holder;
+                        });
+                    }
                     */
                     job["__GlobalID_JobPartID"] = part.get["GUID"];
                     data["WorkOrderLines"][job["GlobalID"]] = job;
                     data["WorkOrderLines"][part.job.get["GlobalID"]] = part.job.get;
+                    to.get["PartIsDeleted"] = 1;
                 }));
 
                 await xdfx.write();
@@ -803,7 +831,6 @@ $(window).on("load", () => {
                 loading(true);
                 engi.nav = null;
                 await engi.actions.fadeout();
-                engi.actions.hide();
                 await all([
                     engi.gap("5vh"),
                     engi.tile.width("30vh")
@@ -824,7 +851,6 @@ $(window).on("load", () => {
                 loading(true);
                 engi.nav = null;
                 await sync.fadeout();
-                sync.hide();
                 await all([
                     engi.gap("15vh"),
                     engi.tile.width("40vh")

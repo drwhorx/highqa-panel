@@ -61,10 +61,13 @@ const sample_qty = (letter, size) => {
 }
 
 const sample_letter = (dim) => {
-    let upper = dim.get["UpperTol"];
-    let lower = dim.get["LowerTol"];
-    let nominal = dim.get["Nominal"];
-    let tol = mathjs.round(upper - lower, 7);   
+    let scale = dim.convert({
+        1: 2, 4: 3
+    }[dim.get["Units"]]);
+    let upper = dim.get["UpperTol"] / scale;
+    let lower = dim.get["LowerTol"] / scale;
+    let nominal = dim.get["Nominal"] / scale;
+    let tol = mathjs.round(upper - lower, 7);
     if (dim.is_gdt()) {
         return upper <= 0.001 ? "A" :
             upper <= 0.003 ? "B" :

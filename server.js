@@ -6,5 +6,6 @@ var server = require('http').createServer(app);
 app.use(express.static('./content'))
 app.get('/', function (req, res, next) {
     res.sendFile(__dirname + '/content/index.html');
+    console.log("get");
 });
 server.listen(8080);

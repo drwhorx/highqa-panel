@@ -40,6 +40,7 @@
     scroll-snap-type: x mandatory;
     align-items: center;
     gap: 5vh;
+    touch-action: none;
 }
 
 .popup.input .drawing {
@@ -95,11 +96,12 @@
 }
 
 .popup.input .drawing .dim {
-    border: 0.2vh solid;
+    stroke-width: .15vh;
+    /*stroke-dasharray: 1vh;*/
     cursor: pointer;
     transform-origin: center;
     transition: transform .1s, fill .1s;
-    /* box-shadow: 0 0 .4vh #101010; */
+    /*animation: pulsate 2s linear infinite;*/
 }
 
 .balloon {
@@ -196,7 +198,6 @@
     gap: 1.5vh;
     align-items: center;
     padding: 2vh 0;
-    opacity: 0;
 }
 .popup.input .data .display {
     line-height: 5vh;
@@ -243,7 +244,7 @@
 }
 
 .popup.input .controls .input > .section {
-    gap: 1.5vh;
+    gap: 1.25vh;
 }
 
 .popup.input .controls .serial,
@@ -257,6 +258,17 @@
     resize: none;
 }
 
+.popup.input .controls .units {
+    padding: 1vh;
+    font-size: 3vh;
+    line-height: 4vh;
+}
+
+.popup.input .controls .serial {
+    padding: .6vh 1vh;
+    line-height: 4vh;
+}
+
 .popup.input .controls .attach {
     width: 40.6vh;
     border: 0.2vh;
@@ -265,11 +277,26 @@
 
 @keyframes pulsate {
     0% {
+        stroke-dashoffset: 0;
         background-position: 0 0;
     }
     100% {
+        stroke-dashoffset: 1vh;
         background-position: 12vh 0;
     }
+}
+
+.pulsate {
+    background-image: linear-gradient(-45deg,
+        transparent 0,
+        transparent 32.5%,
+        #f8de498c 32.5%,
+        #f8de498c 67.5%,
+        transparent 67.5%,
+        transparent 100%);
+    background-size: 12vh;
+    background-repeat: repeat-x;
+    animation: pulsate 2s linear infinite;
 }
 
 .popup.input .controls .serial.pulsate {
@@ -302,12 +329,11 @@
     position: relative;
     border-radius: 1vh;
     overflow: hidden;
-    opacity: 0;
     width: 0;
 }
 
 .popup.input .drawing .multiples .scroll {
-    max-height: 59vh;
+    max-height: 56.5vh;
     align-items: center;
     padding: 1.5vh 0;
     gap: 1.5vh;
@@ -324,6 +350,34 @@
     position: relative;
 }
 
-.popup.input .keyboard {
+.popup.input > .attach {
+    height: 30.5vh;
+    font-size: 3vh;
+    overflow: hidden;
+}
 
+.popup.input > .attach .header {
+    justify-content: center;
+    padding: 1.5vh;
+    gap: 2vh;
+}
+
+.popup.input > .attach .clicky {
+    padding: 1vh 2vh;
+}
+
+.popup.input > .attach .loading {
+    margin: 0;
+}
+
+.popup.input > .attach .scroll {
+    min-height: 19.5vh;
+    padding: 1.5vh;
+    gap: 1.5vh;
+    overflow-y: auto;
+    align-items: center;
+}
+
+.popup.input > .attach .file {
+    gap: 1.5vh;
 }

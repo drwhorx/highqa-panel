@@ -1,7 +1,7 @@
 const invoke = window.__TAURI__?.invoke
 
 const timeout = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-//const socket = io("http://localhost:8080"); 
+const socket = io("http://localhost:8080");
 const mathjs = math;
 const tauri = window.__TAURI__;
 
@@ -14,19 +14,20 @@ const dupe = (el) => {
 
 const loading = async (bool) => {
     if (bool)
-        await $("#title > .center > .loading").fadein()
+        await $("#loading").fadein()
     else {
-        await $("#title > .center > .loading").fadeout();
-        $("#title > .center > .loading").hide();
+        await $("#loading").fadeout();
+        $("#loading").hide();
     }
 };
 
 Date.prototype.toHighQADate = function () {
     let date = new Date(this);
-    date.setHours(this.getHours() - 4);
     let offset = date.getTimezoneOffset();
     let hours = ("" + ((offset / 60) / 100).toFixed(2)).slice(2);
     let mins = ("" + ((offset % 60) / 100).toFixed(2)).slice(2);
+    date.setHours(this.getHours() - hours);
+    date.setMinutes(this.getMinutes() - mins);
     return date.toISOString().slice(0, -1) + "0000-" + hours + ":" + mins;
 }
 
@@ -58,6 +59,15 @@ function trackPointer({ start, move, out, end }, target) {
         });
 
     start && start(e);
+}
+
+function download(url, name) {
+    let a = $("<a>")
+        .attr("href", url)
+        .attr("download", name)
+        .css("display", "none")
+    a[0].click();
+    a.remove();
 }
 
 $.extend({
@@ -98,6 +108,7 @@ $.fn.extend({
             clone.addClass("clone");
             return clone.extend(ext);
         }
+        this.prop("html", this.html());
         return this.extend(obj);
     },
     split: function (init) {
@@ -113,15 +124,22 @@ $.fn.extend({
             return this.find(selector).not(".copy")
     },
 
-    fadeout: function () {
+    fadeout: async function (retain) {
         this.css({
             opacity: 1,
             top: 0
         });
-        return this.animate({
+        await this.animate({
             opacity: 0,
             top: "2vh"
         }, 300).promise();
+        if (!retain) {
+            this.hide();
+            this.css({
+                opacity: "",
+                top: ""
+            });
+        }
     },
     fadein: async function () {
         this.css({
@@ -129,22 +147,26 @@ $.fn.extend({
             top: "-5vh"
         });
         this.show();
-        this.animate({ opacity: 1 }, {
-            duration: 300,
-            queue: false
-        })
-        await this.animate({ top: 0 }, {
-            duration: 500,
-            easing: "easeBounce",
-            queue: false,
-            step: () => this.css({
-                "display": "",
-                "overflow": ""
-            })
-        }).promise();
+        await all([
+            this.animate({ opacity: 1 }, {
+                duration: 300,
+                queue: false
+            }).promise(),
+            this.animate({ top: 0 }, {
+                duration: 500,
+                easing: "easeBounce",
+                queue: false,
+                step: () => this.css({
+                    display: "",
+                    overflow: ""
+                })
+            }).promise()
+        ]);
         return this.css({
-            "display": "",
-            "overflow": ""
+            display: "",
+            overflow: "",
+            opacity: "",
+            top: ""
         })
     },
     bounce: async function (css) {
@@ -254,8 +276,9 @@ $.fn.extend({
         return arr.filter(e => this.hasClass(e))[0];
     },
     show: function (toggle) {
-        if (toggle === undefined || toggle)
-            this.removeAttr("hidden")
+        if (toggle === undefined || toggle) {
+            this.removeAttr("hidden");
+        }
         else this.hide();
     },
     hide: function (toggle) {
@@ -265,6 +288,11 @@ $.fn.extend({
         } else {
             this.show();
         }
+    },
+    reset: function () {
+        this.find(".clone").remove();
+        this.removeAttr("style");
+        this.find("*").removeAttr("style");
     }
 })
 
@@ -291,7 +319,7 @@ $(window).on("load", function () {
     });
     $("input, textarea").on("focus", function () {
         ui.focused = this;
-    });
+    })
     $(".clicky.toggle").each(function () {
         $(this).val(!$(this).hasClass("invalid"));
     }).on("click", function () {

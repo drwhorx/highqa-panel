@@ -4,6 +4,8 @@
 <head>
     <link rel="stylesheet" href="css/setup.css">
     <link rel="stylesheet" href="css/fonts/fonts.css">
+    <link rel="preload" href="css/fonts/Y145-2018/Y145-2018.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="css/fonts/Y145-2018/Y145-2018.woff" as="font" type="font/woff" crossorigin>
 
     <link rel="stylesheet" href="css/loading.css">
     <link rel="stylesheet" href="css/expand.css">
@@ -17,12 +19,10 @@
     <link rel="stylesheet" href="css/depts/qual.css">
 
     <link rel="stylesheet" href="css/popups/quantity.css">
-    <link rel="stylesheet" href="css/popups/updater.css">
+    <link rel="stylesheet" href="css/popups/realtrac.css">
     <link rel="stylesheet" href="css/popups/popups.css">
     <link rel="stylesheet" href="css/popups/input.css">
     <link rel="stylesheet" href="css/popups/merge.css">
-    <link rel="stylesheet" href="css/popups/login.css">
-    <link rel="stylesheet" href="css/popups/more.css">
     <link rel="stylesheet" href="css/popups/spc.css">
 
     <script src="js/lib/jquery-3.6.0.min.js"></script>
@@ -30,6 +30,7 @@
     <script src="js/lib/mathjs.js"></script>
     <script src="js/lib/d3.js"></script>
     <script src="js/lib/pdf.js"></script>
+    <script src="js/lib/pdf.worker.js"></script>
     <script src="js/lib/xlsx.js"></script>
     <script src="js/lib/jszip.min.js"></script>
     <script src="js/lib/socket.io.js"></script>
@@ -40,15 +41,15 @@
     <script src="js/modules/hqa_api.js"></script>
     <script src="js/modules/hqa_model.js"></script>
     <script src="js/modules/hqa_cache.js"></script>
+    <script src="js/modules/realtrac.js"></script>
     <script src="js/modules/xdfx.js"></script>
     <script src="js/modules/samples.js"></script>
 
     <script src="js/ui/spc.js"></script>
     <script src="js/ui/prompts.js"></script>
-    <script src="js/ui/planner.js"></script>
     <script src="js/ui/quantity.js"></script>
     <script src="js/ui/input.js"></script>
-    <script src="js/ui/login.js"></script>
+    <script src="js/ui/people.js"></script>
 
     <script src="js/ui/depts/engi.js"></script>
     <script src="js/ui/depts/shop.js"></script>
@@ -77,27 +78,22 @@
             <div id="menus">
                 <div id="console1">
                     <div id="title" class="section">
-                        <div class="section name">Guest</div>
-                        <div class="center">
-                            <div class="loading" hidden>
-                                <div class="progress">
-                                    <div>loading</div>
-                                </div>
-                            </div>
+                        <div class="section">
+                            <div class="clicky name">Guest</div>
                         </div>
-                        <div class="section company">v0.4.0</div>
+                        <div class="section company">v1.1.1</div>
                     </div>
                     <div id="console">
                         <div class="section engi">
-                            <div class="section tile">
+                            <div class="section vertical tile">
                                 <div class="section card bg">
                                     <img class="icon" src="css/img/gears.png">
                                     <div class="label">Engineering</div>
                                 </div>
-                                <div class="pdf section bg" hidden>
+                                <div class="info1 section vertical bg" hidden>
                                     <div class="partNo"></div>
-                                    <div class="pdf clip">
-                                        <div class="pdf scroll" hidden>
+                                    <div class="clip">
+                                        <div class="scroll" hidden>
                                             <img class="copy pdf"></img>
                                         </div>
                                         <div class="loading" hidden>
@@ -206,14 +202,36 @@
                                     <img class="icon" src="css/img/caliper.png">
                                     <div class="label">Shop Floor</div>
                                 </div>
-                                <div class="section info1 bg" hidden>
+                                <div class="section vertical info1 bg" hidden>
                                     <div class="header">
                                         <div class="jobNo"></div>
                                         <div class="partNo"></div>
                                     </div>
-                                    <div class="pdf1">
-                                        <div class="pdf" hidden>
+                                    <div class="clip">
+                                        <div class="scroll" hidden>
                                             <img class="copy pdf"></img>
+                                            <div class="section bg stats" hidden>
+                                                <div class="section vertical results">
+                                                    <div class="header">Results</div>
+                                                    <svg class="utility dial" viewBox="0 0 100 100"></svg>
+                                                    <div class="stat done">Complete</div>
+                                                    <div class="stat pass">Passes</div>
+                                                    <div class="stat fail">Fails</div>
+                                                    <div class="stat todo">Todo</div>
+                                                </div>
+                                                <div class="section vertical samples">
+                                                    <div class="header">Samples</div>
+                                                    <svg class="utility dial" viewBox="0 0 100 100"></svg>
+                                                    <div class="stat done">In Progress</div>
+                                                    <div class="stat pass">Passes</div>
+                                                    <div class="stat fail">Fails</div>
+                                                    <div class="stat todo">Todo</div>
+                                                </div>
+                                                <div class="section vertical features">
+                                                    <div class="header">Features</div>
+                                                    <svg class="utility dial" viewBox="0 0 100 100"></svg>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="loading" hidden>
                                             <div class="progress">
@@ -222,7 +240,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="section info2 bg" hidden>
+                                <div class="section vertical info2 bg" hidden>
                                     <div class="section vertical">
                                         <div class="jobNo"></div>
                                         <div class="partNo"></div>
@@ -231,10 +249,14 @@
                                         <div class="opNo"></div>
                                         <div class="opName"></div>
                                     </div>
-                                    <div class="reload clicky">Refresh</div>
-                                    <div class="fpi clicky">First Piece</div>
-                                    <div class="repair clicky">Enter Qty.</div>
-                                    <div class="export clicky">Export Data</div>
+                                    <div class="action reload clicky">Refresh</div>
+                                    <div class="action fpi clicky">First Piece</div>
+                                    <div class="action repair clicky">Enter Qty.</div>
+                                    <div class="action export clicky">Export Data</div>
+
+                                    <div class="modify add clicky" hidden>Add Plan</div>
+                                    <div class="modify remove clicky" hidden>Remove Plan</div>
+                                    <div class="modify redo clicky" hidden>Resubmit</div>
                                 </div>
                             </div>
                             <div class="section planner bg" hidden>
@@ -277,24 +299,24 @@
                                 <div class="clip">
                                     <div class="grid vertical hover">
                                         <div class="row head">
-                                            <div class="cell jobNo left" style="width: 21vh">
+                                            <div class="cell jobNo left center" style="width: 21vh">
                                                 <input placeholder="Job #" autocomplete="off">
                                             </div>
-                                            <div class="cell partNo" style="width: 25vh">
+                                            <div class="cell partNo center" style="width: 25vh">
                                                 <input placeholder="Part #" autocomplete="off">
                                             </div>
-                                            <div class="cell customer" style="width: 31vh">
+                                            <div class="cell customer center" style="width: 31vh">
                                                 <input placeholder="Customer" autocomplete="off">
                                             </div>
-                                            <div class="cell partName" style="width: 30vh">
+                                            <div class="cell partName center" style="width: 30vh">
                                                 <input placeholder="Part Name" autocomplete="off">
                                             </div>
                                         </div>
                                         <div class="row content copy">
-                                            <div class="cell jobNo left" style="width: 21vh">53300-01</div>
-                                            <div class="cell partNo" style="width: 25vh">214-040-604-003</div>
-                                            <div class="cell customer" style="width: 31vh">BELL HELICOPTER</div>
-                                            <div class="cell partName" style="width: 30vh">SHAFT</div>
+                                            <div class="cell jobNo left center" style="width: 21vh">53300-01</div>
+                                            <div class="cell partNo center" style="width: 25vh">214-040-604-003</div>
+                                            <div class="cell customer center" style="width: 31vh">BELL HELICOPTER</div>
+                                            <div class="cell partName center" style="width: 30vh">SHAFT</div>
                                         </div>
                                         <div class="row fill" style="width: 23vh"></div>
                                     </div>
@@ -417,6 +439,7 @@
             </div>
         </div>
     </div>
+    <div id="help" class="clicky">?</div>
     <div class="alpha input" hidden>
         <div class="popup input section vertical">
             <div class="drawings1 section bg">
@@ -490,14 +513,17 @@
                 </div>
                 <div class="input section" hidden>
                     <div class="section vertical">
+                        <div class="clicky units primary">IN</div>
+                        <div class="clicky units convert invalid">MM</div>
+                    </div>
+                    <div class="section vertical">
                         <input class="display serial" placeholder="Serial Number" autocomplete="off">
-                        <div class="clicky attach invalid">Add Attachments</div>
-                        <input class="attaches" type="file" autocomplete="off" multiple="true" hidden>
+                        <div class="clicky attach">Attachments</div>
                     </div>
                     <textarea class="display comments" placeholder="Comments" autocomplete="off"></textarea>
                 </div>
             </div>
-            <div class="keyboard section bg">
+            <div class="keyboard section bg" hidden>
                 <div class="options section vertical">
                     <div class="option clicky clear">Clear</div>
                     <div class="option clicky caps">Shift</div>
@@ -566,6 +592,32 @@
                     <div class="row section">
                         <div class="letter clicky" cap="?">/</div>
                         <div class="letter clicky" cap="|">\</div>
+                    </div>
+                </div>
+            </div>
+            <div class="attach section vertical bg" hidden>
+                <input type="file" autocomplete="off" multiple="true" hidden>
+                <div class="section bg header">
+                    <div class="clicky add">Add File(s)</div>
+                    <div class="clicky cancel">Close</div>
+                </div>
+                <div class="section vertical scroll">
+                    <div class="copy section file">
+                        <div class="clicky download"></div>
+                        <div class="clicky remove cancel">X</div>
+                    </div>
+                    <div class="loading" hidden>
+                        <div class="progress">
+                            <div>loading</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="stations section bg" hidden>
+                <div class="section scroll">
+                    <div class="copy station clicky section vertical bg">
+                        <div class="stationName"></div>
+                        <div class="stationNo"></div>
                     </div>
                 </div>
             </div>
@@ -681,31 +733,6 @@
             </div>
         </div>
     </div>
-    <div class="alpha login" hidden>
-        <div class="popup login section vertical bg">
-            <input class="display" placeholder="Clock ID" autocomplete="off" />
-            <div class="row section">
-                <div class="number clicky">1</div>
-                <div class="number clicky">2</div>
-                <div class="number clicky">3</div>
-            </div>
-            <div class="row section">
-                <div class="number clicky">4</div>
-                <div class="number clicky">5</div>
-                <div class="number clicky">6</div>
-            </div>
-            <div class="row section">
-                <div class="number clicky">7</div>
-                <div class="number clicky">8</div>
-                <div class="number clicky">9</div>
-            </div>
-            <div class="row section">
-                <div class="number clicky">0</div>
-                <div class="clear clicky">Clear</div>
-            </div>
-            <div class="accept clicky invalid">Accept</div>
-        </div>
-    </div>
     <div class="alpha quantity" hidden>
         <div class="popup quantity section vertical bg">
             <input class="display" placeholder="Part Count" autocomplete="off" />
@@ -764,8 +791,237 @@
             </div>
         </div>
     </div>
-    <div id="message">
-        <div class="text section bg" hidden></div>
+    <div class="alpha people" hidden>
+        <div class="loading" hidden>
+            <div class="progress">
+                <div>loading</div>
+            </div>
+        </div>
+        <div class="popup people section">
+            <div class="session section vertical bg" hidden>
+                <div class="scroll section vertical">
+                    <div class="header section vertical bg">
+                        <div class="title">New Session</div>
+                        <div class="section keys">
+                            <input class="display" placeholder="Job #" autocomplete="off" />
+                            <div class="clicky num">0</div>
+                            <div class="clicky num">1</div>
+                            <div class="clicky num">2</div>
+                            <div class="clicky num">3</div>
+                            <div class="clicky num">4</div>
+                            <div class="clicky num">5</div>
+                            <div class="clicky num">6</div>
+                            <div class="clicky num">7</div>
+                            <div class="clicky num">8</div>
+                            <div class="clicky num">9</div>
+                            <div class="clicky num clear">Clear</div>
+                        </div>
+                        <div class="section info" hidden>
+                            <div class="jobNo"></div>
+                            <div class="opNo"></div>
+                            <div class="stationName"></div>
+                        </div>
+                    </div>
+                    <div class="section menu jobs" hidden>
+                        <div class="copy job clicky section vertical bg">
+                            <div class="jobNo"></div>
+                            <div class="partNo"></div>
+                        </div>
+                    </div>
+                    <div class="section vertical menu ops" hidden>
+                        <div class="copy op clicky section vertical bg">
+                            <div class="opTitle section bg"></div>
+                            <div class="opDesc"></div>
+                        </div>
+                    </div>
+                    <div class="section menu stations" hidden>
+                        <div class="copy station clicky section vertical bg">
+                            <div class="stationName"></div>
+                            <div class="stationNo"></div>
+                        </div>
+                    </div>
+                    <div class="section vertical menu edit" hidden>
+                        <div class="section bg vertical opInfo">
+                            <div class="title section bg"></div>
+                            <div class="section info">
+                                <div class="stat status"></div>
+                                <div class="stat hours"></div>
+                                <div class="stat pieces"></div>
+                                <div class="stat scrapped"></div>
+                            </div>
+                        </div>
+                        <div class="section bg vertical sessionInfo">
+                            <div class="title section bg">Session:</div>
+                            <div class="section info">
+                                <div class="stat clocked"></div>
+                                <div class="stat hours"></div>
+                                <div class="stat pieces"></div>
+                                <div class="stat scrapped"></div>
+                            </div>
+                        </div>
+                        <div class="section buttons">
+                            <div class="close clicky">Close OP</div>
+                            <div class="toggle clicky">Start</div>
+                            <div class="break clicky">Break</div>
+                        </div>
+                        <div class="section inputs">
+                            <div class="section vertical">
+                                <div value="10" class="clicky accept incr good">+10 Good</div>
+                                <div value="10" class="clicky accept incr scrap">+10 Scrap</div>
+                            </div>
+                            <div class="section vertical">
+                                <div value="1" class="clicky accept incr good">+1 Good</div>
+                                <div value="1" class="clicky accept incr scrap">+1 Scrap</div>
+                            </div>
+                            <div class="section vertical">
+                                <div value="-1" class="clicky cancel incr good">-1 Good</div>
+                                <div value="-1" class="clicky cancel incr scrap">-1 Scrap</div>
+                            </div>
+                        </div>
+                        <textarea class="display comments" placeholder="Comments" autocomplete="off"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="logins section bg">
+                <div class="scroll section vertical">
+                    <div class="header section bg">RealTrac Logins</div>
+                    <div class="section users">
+                        <div class="user clicky copy">
+                            <div class="name"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="options section vertical bg">
+                <div class="scroll section vertical">
+                    <div class="header section vertical bg">
+                        <div class="name">Guest</div>
+                        <div class="clocked">Not Clocked</div>
+                        <div class="clicky cancel clock">Punch Clock</div>
+                        <div class="section buttons">
+                            <div class="clicky login">Log In</div>
+                            <div class="clicky add">New Session</div>
+                        </div>
+                    </div>
+                    <div class="copy active clicky section vertical bg">
+                        <div class="jobTitle"></div>
+                        <div class="opTitle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="keyboard section bg">
+            <div class="options section vertical">
+                <div class="option clicky accept close">Close</div>
+                <div class="option clicky clear">Clear</div>
+                <div class="option clicky caps">Shift</div>
+                <div class="option clicky space">Space</div>
+            </div>
+            <div class="letters section vertical">
+                <div class="row section">
+                    <div class="letter clicky" cap="!">1</div>
+                    <div class="letter clicky" cap="@">2</div>
+                    <div class="letter clicky" cap="#">3</div>
+                    <div class="letter clicky" cap="$">4</div>
+                    <div class="letter clicky" cap="%">5</div>
+                    <div class="letter clicky" cap="^">6</div>
+                    <div class="letter clicky" cap="&amp;">7</div>
+                    <div class="letter clicky" cap="*">8</div>
+                    <div class="letter clicky" cap="(">9</div>
+                    <div class="letter clicky" cap=")">0</div>
+                </div>
+                <div class="row section">
+                    <div class="letter clicky">Q</div>
+                    <div class="letter clicky">W</div>
+                    <div class="letter clicky">E</div>
+                    <div class="letter clicky">R</div>
+                    <div class="letter clicky">T</div>
+                    <div class="letter clicky">Y</div>
+                    <div class="letter clicky">U</div>
+                    <div class="letter clicky">I</div>
+                    <div class="letter clicky">O</div>
+                    <div class="letter clicky">P</div>
+                </div>
+                <div class="row section">
+                    <div class="letter clicky">A</div>
+                    <div class="letter clicky">S</div>
+                    <div class="letter clicky">D</div>
+                    <div class="letter clicky">F</div>
+                    <div class="letter clicky">G</div>
+                    <div class="letter clicky">H</div>
+                    <div class="letter clicky">J</div>
+                    <div class="letter clicky">K</div>
+                    <div class="letter clicky">L</div>
+                </div>
+                <div class="row section">
+                    <div class="letter clicky">Z</div>
+                    <div class="letter clicky">X</div>
+                    <div class="letter clicky">C</div>
+                    <div class="letter clicky">V</div>
+                    <div class="letter clicky">B</div>
+                    <div class="letter clicky">N</div>
+                    <div class="letter clicky">M</div>
+                </div>
+            </div>
+            <div class="letters section vertical">
+                <div class="row section">
+                    <div class="letter clicky" cap="_">-</div>
+                    <div class="letter clicky" cap="+">=</div>
+                </div>
+                <div class="row section">
+                    <div class="letter clicky" cap=":">;</div>
+                    <div class="letter clicky" cap="&quot;">'</div>
+                </div>
+                <div class="row section">
+                    <div class="letter clicky" cap="[">,</div>
+                    <div class="letter clicky" cap="]">.</div>
+                </div>
+                <div class="row section">
+                    <div class="letter clicky" cap="?">/</div>
+                    <div class="letter clicky" cap="|">\</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="alpha edit" hidden>
+        <div class="popup edit section">
+            <div class="editor section vertical bg">
+                <div class="dimreq gdt"></div>
+                <div class="section">
+                    <input class="display dimNo" placeholder="Dim #" autocomplete="off">
+                    <input class="display multi" placeholder="X" autocomplete="off">
+                </div>
+            </div>
+            <div class="drawings section bg">
+                <div class="clip copy">
+                    <div class="loading" hidden>
+                        <div class="progress">
+                            <div>loading</div>
+                        </div>
+                    </div>
+                    <div class="section buttons">
+                        <div class="zoomin clicky"><img src="css/img/zoom-in.png"></div>
+                        <div class="zoomfit clicky"><img src="css/img/zoom-fit.png"></div>
+                        <div class="zoomout clicky"><img src="css/img/zoom-out.png"></div>
+                    </div>
+                    <div class="gallery">
+                        <img class="pdf"></img>
+                        <div class="copy dim" rx=".4vh">
+                            <div class="balloon" hidden></div>
+                            <div class="knob tl" hidden></div>
+                            <div class="knob tm" hidden></div>
+                            <div class="knob tr" hidden></div>
+                            <div class="knob ml" hidden></div>
+                            <div class="knob mm" hidden></div>
+                            <div class="knob mr" hidden></div>
+                            <div class="knob bl" hidden></div>
+                            <div class="knob bm" hidden></div>
+                            <div class="knob br" hidden></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="alpha message" hidden>
         <div class="popup message section vertical bg">
@@ -782,6 +1038,21 @@
             <div class="text">1: Part Quantity</div>
             <div class="text">2: OP Sketches</div>
             <div class="text">Next Step: First Piece</div>
+        </div>
+    </div>
+    <div class="alpha help" hidden>
+        <div class="popup help section bg">
+            <div class="scroll section">
+                <div class="slide"></div>
+            </div>
+        </div>
+    </div>
+    <div id="message">
+        <div class="text section bg" hidden></div>
+    </div>
+    <div id="loading" class="loading" hidden>
+        <div class="progress">
+            <div>loading</div>
         </div>
     </div>
 </body>

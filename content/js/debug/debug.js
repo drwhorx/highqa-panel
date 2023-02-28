@@ -93,10 +93,22 @@ const test3 = async () => {
 }
 
 const test4 = async () => {
-    let from = ui.engi.sync.from.part;
-    let to = ui.engi.sync.to.parts[0];
-
-    
+    let dims = Array.from({length: 100}).map((e, i) => ({
+        "DimNo": i + 100,
+        "Type": i,
+        "Multiplier": 1,
+        "Nominal": 1.1,
+        "UpperTol": 1.2,
+        "LowerTol": 1.0,
+        "TolType": i,
+        "Note": "",
+        "Units": i
+    }));
+    let query = API("dims/bulkload");
+    query.req["InputDims"] = dims;
+    query.req["IgnoreInvalidLines"] = true;
+    query.req["PartGUID"] = "234d4415-e083-4932-8b17-e8c782b4967a";
+    await query.send();
 }
 
 const drawpdf = async (pdf, pageNo, canvas) => {

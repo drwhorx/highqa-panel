@@ -37,6 +37,32 @@
     line-height: 7.5vh;
     font-size: 3vh;
 }
+#title .name,
+#title .help {
+    line-height: 5vh;
+    width: 36vh;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+#help {
+    width: 5vh;
+    height: 5vh;
+    border-radius: 2.5vh;
+    position: absolute;
+    top: 3.75vh;
+    left: calc(50vw + 75vh - 7.5vh);
+    line-height: 5vh;
+    font-size: 3vh;
+    z-index: 100;
+}
+#loading {
+    position: absolute;
+    z-index: 1000;
+    transform: translateY(4.25vh);
+    left: calc(50vw - 20vh);
+    top: 0;
+}
 .section {
     display: flex;
     position: relative;

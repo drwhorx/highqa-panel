@@ -17,7 +17,7 @@ $(window).on("load", () => {
                 qual.nav = null;
                 let hide = depts.tiles.not(qual.tile);
 
-                await hide.fadeout();
+                await hide.fadeout(true);
                 await all([
                     menu.gap(0),
                     hide.width(0),
@@ -51,7 +51,6 @@ $(window).on("load", () => {
                 let show = depts.tiles.not(qual.tile);
 
                 await actions.fadeout();
-                actions.hide();
                 show.show();
                 await all([
                     qual.gap(0),
@@ -77,7 +76,6 @@ $(window).on("load", () => {
                 qual.nav = null;
 
                 await qual.actions.fadeout();
-                qual.actions.hide();
                 await all([
                     qual.gap("5vh"),
                     qual.tile.width("30vh"),
@@ -119,7 +117,6 @@ $(window).on("load", () => {
                 qual.nav = null;
 
                 await jobs.fadeout();
-                jobs.hide();
                 await all([
                     qual.gap("15vh"),
                     qual.tile.width("40vh")
@@ -154,7 +151,6 @@ $(window).on("load", () => {
                 qual.nav = null;
 
                 await qual.jobs.fadeout();
-                qual.jobs.hide();
                 await all([
                     qual.gap("5vh"),
                     qual.tile.width("30vh"),
@@ -175,7 +171,6 @@ $(window).on("load", () => {
 
                     qual.nav = null;
                     await spc.loading.fadeout();
-                    spc.loading.hide();
                     spc.load();
                     qual.nav = spc.close;
                 })();
@@ -226,8 +221,6 @@ $(window).on("load", () => {
                 qual.nav = null;
 
                 await qual.spc.fadeout();
-                qual.spc.hide();
-
                 loading(false);
                 await qual.jobs.fadein();
                 qual.nav = qual.jobs.close;
@@ -243,7 +236,6 @@ $(window).on("load", () => {
                     user.date.setDate(user.date.getDate() - 1);
                     daily.date.current.text($.format.date(user.date, "ddd, MMMM D, yyyy"));
                     await daily.results.fadeout();
-                    daily.results.hide();
 
                     let res = await daily.query.run();
                     if (res == "cancelled") return;
@@ -285,7 +277,6 @@ $(window).on("load", () => {
                 qual.nav = null;
 
                 await actions.fadeout();
-                actions.hide();
                 await all([
                     qual.card.tile.width("30vh"),
                     qual.gap("5vh")
@@ -467,7 +458,6 @@ $(window).on("load", () => {
                 qual.nav = null;
 
                 await daily.fadeout();
-                daily.hide();
                 await all([
                     qual.card.tile.width("40vh"),
                     qual.gap("15vh")

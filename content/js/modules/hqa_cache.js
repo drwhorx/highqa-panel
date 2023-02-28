@@ -320,8 +320,17 @@ const load_results = function (get_results) {
         if (serial) {
             result.serial = model.serial[res["ResNo"]] = serial;
             serial.result = result;
+            try {
+                result.data = JSON.parse(serial.get["Comments"])
+            } catch (e) {
+                result.data = {
+                    "Comments": serial.get["Comments"],
+                    "InspectedDate": serial.get["Number"],
+                    "S/N": serial.get["ERPID"]
+                }
+            }
             res["MeasuredByGUID"] = serial.get["CreatedByGUID"];
-            res["InspectedDate"] = serial.get["Number"];
+            res["InspectedDate"] = result.data["InspectedDate"];
         }
         result.inspector = model.contact[res["MeasuredByGUID"]];
         sample?.results.push(result);

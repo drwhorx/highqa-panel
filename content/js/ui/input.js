@@ -2,16 +2,17 @@ $(window).on("load", () => {
     user.serial = "";
     ui.input = $(".input.popup").ext((input) => ({
         open: async function (spc) {
+            input.reset();
             sample = user.sample;
             input.drawings.$(".clone").remove();
             let drawings = user.job.part.drawings.sort((a, b) =>
                 a.get["Title"].localeCompare(b.get["Title"])
                 || a.get["PdfPageNo"] - b.get["PdfPageNo"]);
             for (let drawing of drawings) {
-                let dims = user.op.dims.filter(e => 
-                    drawing.dims.includes(e) && (!spc || spc == e) &&
-                    (e.holders.find(h => h.sample == sample) ||
-                    e.results.find(h => h.sample == sample))
+                let dims = user.op.dims.filter(e =>
+                    drawing.dims.includes(e) && (spc == e ||
+                        (e.holders.find(h => h.sample == sample) ||
+                            e.results.find(h => h.sample == sample)))
                 );
                 if (dims.length == 0) continue;
                 let dupe1 = ui.input.drawings.copy.dupe();
@@ -20,7 +21,7 @@ $(window).on("load", () => {
                     let dim = $(this).prop("model");
                     $(this).addClass(dim.get_status(sample));
                     if (spc) {
-                        dupe1.data.dim = dupe2;
+                        dupe1.data.dim = $(this);
                         dupe1.dimreq.addClass(dim.get_status());
                         dupe1.dimreq.text(dim.get["DimNo"] + ": " + dim.get["Requirement"]);
                         dupe1.spotlight.show();
@@ -35,12 +36,10 @@ $(window).on("load", () => {
             input.info.loginName.text(
                 user.login ? user.login.get["FirstName"] + " " + user.login.get["LastName"] : "Guest"
             );
-            input.controls.css({ "height": "12.5vh" });
-            input.drawings.css({ "height": "75vh" });
             input.controls.input.hide();
             input.controls.browse.show();
-            input.controls.browse.css({ "opacity": 1, "top": 0 });
-            input.$(".drawings1, .controls, .keyboard").css({ "top": "-0" });
+            input.keyboard.hide();
+            input.attach.hide();
             ui.prompts.spc.closest(".alpha").insertBefore(ui.input.closest(".alpha"));
             await ui.prompts.open(input);
         },
@@ -69,16 +68,31 @@ $(window).on("load", () => {
                         drawing.data.display.attr("placeholder", result ? $.fixed(result.get["Data"], dim.places()) : multiple.text());
                         drawing.data.accept.check();
 
-                        input.controls.comments.val(result?.serial?.get["Comments"] || "");
+                        input.controls.comments.val(result?.data["Comments"] || "");
                         input.controls.comments.trigger("input");
-                        let serial = result?.serial?.get["ERPID"] || "";
+                        let serial = result?.data["S/N"] || "";
                         user.serial = serial || user.serial;
                         input.controls.serial.val(user.serial);
                         input.controls.serial.toggleClass("pulsate", user.serial != serial);
                         input.controls.result = result;
 
+                        let opposite = {
+                            1: 2, 2: 1, 3: 4, 4: 3
+                        }[dim.get["Units"]];
+                        input.controls.unit1.val(dim.get["Units"]);
+                        input.controls.unit1.text(types.Units[dim.get["Units"]]);
+                        input.controls.unit2.val(opposite);
+                        input.controls.unit2.text(types.Units[opposite]);
+                        if (result) input.controls.unit1.trigger("click");
+
                         drawing.multiples.$(".multiple").removeClass("pulsate");
                         multiple.addClass("pulsate");
+
+                        (async () => {
+                            await input.attach.$(".clone").fadeout();
+                            if (input.attach.is(":visible"))
+                                input.attach.open();
+                        })();
                     },
                     copy: multiples.$(".multiple.copy").nav(async function () {
                         multiples.set_multiple($(this));
@@ -107,7 +121,13 @@ $(window).on("load", () => {
                             accept.toggleClass("invalid", isNaN(data.display.val()) || (
                                 data.display.val().trim() === "" && !data.result
                             ))
-                            accept.text(data.display.val().trim() === "" && data.result ? "Delete" : "Accept");
+                            if (data.result) {
+                                if (data.display.val().trim() === "") accept.text("Delete");
+                                else if (data.display.val() == data.result.get["Data"]) accept.text("Resubmit");
+                                else accept.text("Accept");
+                            } else {
+                                accept.text("Accept");
+                            }
                         }
                     })).nav(async function () {
                         if ($(this).hasClass("invalid")) return;
@@ -117,30 +137,46 @@ $(window).on("load", () => {
                         let sample = user.sample;
                         let login = user.login;
                         let number = data.display.val();
+                        let units = input.$(".units").not(".invalid").val();
+                        let files = [];
                         if (data.result) {
+                            files = (await data.result.get_files(() => true)).filter(file =>
+                                !input.attach.$(".download.cancel").get().find(e =>
+                                    $(e).prop("model")?.get["GUID"] == file["GUID"]
+                                )
+                            );
                             query = API("results/delete");
                             query.req["ResultGUIDs"] = data.result.get["GUID"];
                             await query.send();
                             unload_results([data.result]);
                         }
                         if (number.trim() !== "") {
-                            let date = new Date();
+                            let scale = dim.convert(units);
+                            if (!isNaN(+number.trim())) number = +number / scale;
+
+                            let date = new Date().toHighQADate();
+                            if (data.result && data.result.get["Data"] == number)
+                                date = data.result.get["InspectedDate"] || date;
                             query = API("ncr/set");
                             query.req["InputNCR"] = {
                                 "GUID": "",
                                 "JobGUID": user.job.get["GUID"],
                                 "LotGUID": "",
-                                "Number": date.toHighQADate(),
+                                "Number": date,
                                 "Status": 0,
-                                "CreationDate": date.toHighQADate(),
+                                "CreationDate": date,
                                 "CreatedByGUID": login.get["GUID"],
                                 "ResponseDate": null,
                                 "AssignedToGUID": "",
                                 "WorkCellGUID": "",
                                 "InspCenterGUID": "",
                                 "BarcodeID": "",
-                                "ERPID": user.serial,
-                                "Comments": user.comments
+                                "ERPID": "",
+                                "Comments": JSON.stringify({
+                                    "S/N": user.serial,
+                                    "Comments": user.comments,
+                                    "InspectedDate": date
+                                })
                             }
                             user.comments = "";
                             let ncr = (await query.send())["OutputNCR"];
@@ -181,6 +217,27 @@ $(window).on("load", () => {
                             data.multiple.removeClass("insp done fail");
                             data.multiple.addClass(res["Status"] == 2 ? "fail" : "done");
                             data.multiple.text($.fixed(res["Data"], dim.places()));
+                            for (let file of files) {
+                                let query = API("results/addattachments");
+                                query.req["ResultGUID"] = res["GUID"];
+                                query.req["Files"] = file["GUID"];
+                                await query.send();
+                            }
+                            let accept = input.attach.$(".accept").not(".cancel").get();
+                            for (let add of accept) {
+                                let file = $(add).prop("file");
+                                let query = API("filestorage/upload");
+                                let form = new FormData();
+                                form.append("files", new File([file], file.name));
+                                query.req = form;
+                                let guid = (await query.send())["GUID"];
+                                console.log(guid);
+
+                                query = API("results/addattachments");
+                                query.req["ResultGUID"] = res["GUID"];
+                                query.req["Files"] = guid;
+                                await query.send();
+                            }
                             data.result = model.result[res["GUID"]];
                             data.multiple.prop("model", data.result);
                         } else {
@@ -197,11 +254,10 @@ $(window).on("load", () => {
 
                         ui.shop.planner.load();
                         drawing.loading.fadeout();
-                        drawing.loading.hide();
 
                         if (data.result == null) {
                             drawing.multiples.set_multiple(data.multiple);
-                        } else if (dim.results.length >= dim.get["Multiplier"]) {
+                        } else if (dim.results.filter(r => r.sample == sample).length >= dim.get["Multiplier"]) {
                             data.cancel.click();
                         } else {
                             let multiple = $(drawing.multiples.$(".multiple.clone").toArray()
@@ -209,19 +265,14 @@ $(window).on("load", () => {
                             drawing.multiples.set_multiple(multiple);
                         }
                     }),
-                    more: data.$(".more").nav(async function () {
-                        ui.keyboard.fadein();
-                        await ui.prompts.open(ui.prompts.more);
-                    }),
                     cancel: data.$(".cancel").nav(async function () {
                         await all([
-                            data.fadeout(),
+                            data.fadeout(true),
                             drawing.spotlight.fadeout(),
                             input.controls.input.fadeout(),
-                            drawing.multiples.fadeout()
+                            drawing.multiples.fadeout(true)
                         ]);
-                        input.controls.input.hide();
-                        input.keyboard.close.trigger("click");
+                        input.attach.close.trigger("click");
                         await all([
                             data.width("0"),
                             drawing.multiples.width("0"),
@@ -229,7 +280,6 @@ $(window).on("load", () => {
                             drawings.height("75vh"),
                             input.controls.height("12.5vh")
                         ]);
-                        drawing.spotlight.hide();
                         data.hide();
                         drawing.$(".dim").show();
                         await all([
@@ -252,9 +302,9 @@ $(window).on("load", () => {
                         input.controls.browse.fadeout(),
                         hide.fadeout()
                     ]);
-                    hide.hide();
                     dims.hide();
-                    input.controls.browse.hide();
+                    drawing.data.css({ "opacity": 0 });
+                    drawing.multiples.css({ "opacity": 0 });
                     drawing.data.show();
                     if (max > 1) {
                         drawing.multiples.show();
@@ -296,6 +346,7 @@ $(window).on("load", () => {
                 }),
                 svg: drawing.$("svg"),
                 clip: drawing.$(".clip")
+                    .off("pointerdown pointermove mousewheel DOMMouseScroll")
                     .on(`contextmenu`, e => false)
                     .on("pointerdown", function (e) {
                         let svg = drawing.svg;
@@ -409,34 +460,113 @@ $(window).on("load", () => {
         controls: input.$(".controls").ext((controls) => ({
             browse: controls.$(".info1, .info2"),
             input: controls.$(".input"),
+            unit1: controls.$(".units.primary"),
+            unit2: controls.$(".units.convert"),
+            units: controls.$(".units").nav(function () {
+                controls.units.not(this).toggleClass("invalid", true);
+                $(this).toggleClass("invalid", false);
+            }),
             serial: controls.$(".serial").on("input", function () {
                 user.serial = $(this).val();
-                let serial = controls.result?.serial?.get["ERPID"] || "";
+                let serial = controls.result?.data["ERPID"] || "";
                 $(this).toggleClass("pulsate", serial != user.serial);
             }).on("focus", function () {
-                input.$(".drawings1, .controls, .keyboard").bounce({ "top": "-33vh" })
+                if (!input.keyboard.is(":visible"))
+                    input.keyboard.open();
             }),
             comments: controls.$(".comments").on("input", function () {
                 user.comments = $(this).val();
             }).on("focus", function () {
-                input.$(".drawings1, .controls, .keyboard").bounce({ "top": "-33vh" })
+                if (!input.keyboard.is(":visible"))
+                    input.keyboard.open();
             }),
-            attach: controls.$(".attach").ext((attach) => ({
-                update: () => {
-
-                },
-                task: task(async valid => {
-                    return await await_file(controls.$(".attaches"), valid);
-                })
-            })).click(function () {
-                return;
-                let res = $(this).prop("obj").task.run();
-                if (res == "cancelled") return;
+            attach: controls.$(".attach").nav(async function () {
+                input.attach.open();
             })
         })),
-        keyboard: input.$(".keyboard").ext((keyboard) => ({
+        keyboard: input.$("> .keyboard").ext((keyboard) => ({
+            open: async () => {
+                if (input.attach.is(":visible")) {
+                    await input.attach.fadeout();
+                    await keyboard.fadein();
+                } else {
+                    keyboard.fadein();
+                    await input.bounce({ "top": "-33vh" });
+                }
+            },
             close: keyboard.$(".close").nav(async function () {
-                input.$(".drawings1, .controls, .keyboard").bounce({ "top": "0" })
+                await input.bounce({ "top": "0" });
+                keyboard.hide();
+            })
+        })),
+        attach: input.$("> .attach").ext((attach) => ({
+            input: attach.$("input"),
+            loading: attach.$(".loading"),
+            scroll: attach.$(".scroll"),
+            add: attach.$(".add").ext((add) => ({
+                task: task(async valid => {
+                    return await await_file(attach.input, valid);
+                })
+            })).click(async () => {
+                let res = await attach.add.task.run();
+                if (res == "cancelled") return;
+
+                Array.from(res).map(file => {
+                    let dupe = attach.file.dupe();
+                    dupe.hide();
+                    dupe.download.prop("file", file);
+                    dupe.download.addClass("accept");
+                    dupe.download.text(file.name);
+                    attach.scroll.append(dupe);
+                    dupe.fadein();
+                });
+            }),
+            task: task(async valid => {
+                return await input.controls.result.get_files(valid);
+            }),
+            open: async () => {
+                attach.$(".clone").remove();
+                if (input.keyboard.is(":visible")) {
+                    await input.keyboard.fadeout();
+                    await attach.fadein();
+                } else if (!input.attach.is(":visible")) {
+                    attach.fadein();
+                    await input.bounce({ "top": "-33vh" });
+                }
+                if (!input.controls.result) return;
+
+                attach.loading.fadein();
+                let res = await attach.task.run();
+                if (res == "cancelled") return;
+
+                let files = await load_files(res);
+                for (let file of files) {
+                    let dupe = attach.file.dupe();
+                    dupe.hide();
+                    dupe.download.prop("model", file);
+                    dupe.download.prop("file", file.get["Blob"]);
+                    dupe.download.text(file.get["Name"]);
+                    attach.scroll.append(dupe);
+                }
+
+                await attach.loading.fadeout();
+                await attach.$(".clone").fadein();
+            },
+            file: attach.$(".copy.file").ext((file) => ({
+                download: file.$(".download").nav(function () {
+                    let model = $(this).prop("model");
+                    let blob = $(this).prop("file");
+                    let url = URL.createObjectURL(blob);
+                    download(url, blob.name || model?.get["Name"]);
+                }),
+                remove: file.$(".remove").nav(() => {
+                    file.download.toggleClass("cancel");
+                })
+            })),
+            close: attach.$(".cancel").nav(async function () {
+                attach.task.cancel();
+                await input.bounce({ "top": "0" });
+                attach.hide();
             })
         }))
     }));

@@ -208,6 +208,21 @@ const models = {
 
         is_gdt: () => {
             return [30, 29, 28, 27, 26, 23, 21, 20, 14, 13, 11, 8, 7, 6, 2].includes(init["Type"])
+        },
+
+        convert: function (units) {
+            if (this.get["TypeText"] == "Surface Finish")
+                return {
+                    1: { 2: 1 / 0.0254 },
+                    2: { 1: 0.0254 },
+                }[this.get["Units"]][units] || 1;
+            else
+                return {
+                    1: { 2: 1 / 25.4 },
+                    2: { 1: 25.4 },
+                    3: { 4: 3.14 / 180 },
+                    4: { 3: 180 / 3.14 },
+                }[this.get["Units"]][units] || 1;
         }
     }),
     drawing: (init) => model.load(model.drawing, {
@@ -301,17 +316,17 @@ const models = {
         sample: {},
         files: [],
         serial: null,
+        data: {},
 
         inspector: {},
 
         get_files: async (valid) => {
             let query = API("results/getattachments");
             query.req["ResultGUID"] = init["GUID"];
-            let files = (await query.send())["Files"];
+            let files = (await query.pages())["Files"];
             if (!valid()) return;
 
             let res = await all(files.map(async file => {
-
                 let query1 = API("filestorage/token");
                 let query2 = API("filestorage/download");
                 query1.req["GUID"] = file["GUID"];
@@ -323,6 +338,7 @@ const models = {
                     "PartGUID": init["PartGUID"],
                     "ResultGUID": init["GUID"],
                     "GUID": file["GUID"],
+                    "Name": file["Name"],
                     "Blob": res
                 }
             }));
@@ -397,5 +413,84 @@ const types = {
         5: "MIN",
         6: "MAX",
         7: "Tol Class",
-    }
+    },
+    Units: {
+        1: "MM",
+        2: "IN",
+        3: "DEG",
+        4: "RAD"
+    },
+    XDFX_Holder: () => ({
+        "ActualAxis": "",
+        "ActualBonus": "0.00000000",
+        "ActualCode": "2",
+        "ActualComment": "",
+        "ActualContactID": "0",
+        "ActualCp": "0.00000000",
+        "ActualCpk": "0.00000000",
+        "ActualData": "0.00000000",
+        "ActualDataPrec": "3",
+        "ActualDeviation": "0.00000000",
+        "ActualDeviationExist": "0",
+        "ActualDimID": "0",
+        "ActualError": "0.00000000",
+        "ActualExport": "0",
+        "ActualFailedCount": "0",
+        "ActualFeature1": "",
+        "ActualFeature2": "",
+        "ActualFiles": "0",
+        "ActualGroup": "137993",
+        "ActualInspectDate": null,
+        "ActualInstanceID": "0",
+        "ActualInventoryID": "0",
+        "ActualIsPrimary": "1",
+        "ActualIsValid": "0",
+        "ActualLowerTol": "3.07300000",
+        "ActualLowerTol1": "0.00000000",
+        "ActualLowerTolExist": "0",
+        "ActualLowerTolValid": "1",
+        "ActualMachineID": "0",
+        "ActualMeas": "",
+        "ActualNominal": "0.00000000",
+        "ActualNominalExist": "0",
+        "ActualNominalValid": "1",
+        "ActualNonConfAttachContactID": "0",
+        "ActualNonConfAttachDate": null,
+        "ActualNonConformanceID": "0",
+        "ActualNotified": "0",
+        "ActualNum": "0",
+        "ActualOperationID": "0",
+        "ActualOutTolExist": "0",
+        "ActualPartInstanceID": "0",
+        "ActualPp": "0.00000000",
+        "ActualPpk": "0.00000000",
+        "ActualRange": "0.00000000",
+        "ActualResult": "0",
+        "ActualReviewed": "0",
+        "ActualSPCDataID": "0",
+        "ActualSort": "",
+        "ActualSource": "1",
+        "ActualStatus": "",
+        "ActualText": "",
+        "ActualTolPrec": "3",
+        "ActualType": "12",
+        "ActualTypeExist": "0",
+        "ActualUnits": "0",
+        "ActualUpperTol": "3.07500000",
+        "ActualUpperTol1": "0.00000000",
+        "ActualUpperTolExist": "0",
+        "ActualUpperTolValid": "1",
+        "GlobalID": "",
+        "ID": "",
+        "__GlobalID_ActualContactID": "",
+        "__GlobalID_ActualDimID": "",
+        "__GlobalID_ActualInstanceID": "",
+        "__GlobalID_ActualInventoryID": "",
+        "__GlobalID_ActualMachineID": "",
+        "__GlobalID_ActualNonConfAttachContactID": "",
+        "__GlobalID_ActualNonConformanceID": "",
+        "__GlobalID_ActualOperationID": "",
+        "__GlobalID_ActualPartInstanceID": "",
+        "__GlobalID_ActualSPCDataID": "",
+    })
 }

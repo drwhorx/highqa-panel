@@ -1,14 +1,16 @@
 const all = Promise.all.bind(Promise);
-const ui = {
-    download: (file) => {
-
-    }
-};
+const ui = {};
 
 $(window).on("load", () => {
     ui.title = $("#title").ext((title) => ({
-        name: title.$(".name")
-    }))
+        name: title.$(".name").nav(async () => {
+            await ui.people.logins.open();
+            await ui.prompts.modal(ui.people);
+        }),
+        help: title.$(".help").nav(async () => {
+            
+        })
+    }));
     ui.menu = $("#console").ext((menu) => ({
         depts: menu.$("> .section").ext((depts) => ({
             tiles: depts.$("> .tile")
@@ -26,7 +28,6 @@ $(window).on("load", () => {
             if (prompt.escape) await prompt.escape();
             await alpha.fadeout();
             if (prompt.resolve) prompt.resolve(reason);
-            alpha.hide();
         },
         modal: async (prompt) => {
             return await new Promise(resolve => {
@@ -95,20 +96,7 @@ $(window).on("load", () => {
         input: $(".input.popup"),
         login: $(".login.popup"),
         merge: $(".merge.popup"),
-        more: $(".more.popup").ext((more) => ({
-            comments: more.$(".comments"),
-            serial: more.$(".serial"),
-            escape: () => {
-                user.serial = more.serial.val();
-                user.comments = more.comments.val();
-                ui.input.drawings.$(".serial").text("S/N: " + (user.serial || "Not Selected"));
-                ui.input.drawings.$(".serial").toggleClass("pulsate", !!user.serial);
-                (async () => {
-                    await ui.keyboard.fadeout();
-                    ui.keyboard.hide();
-                })();
-            }
-        }))
+        verify: $(".verify.popup")
     }));
     ui.keyboard = $(".section.keyboard").ext((keyboard) => ({
         caps: keyboard.$(".caps").nav(() => {
@@ -142,7 +130,6 @@ $(window).on("load", () => {
             await message.fadein();
             await timeout(6000);
             await message.fadeout();
-            message.hide();
         }
     }));
 });

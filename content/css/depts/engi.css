@@ -18,23 +18,12 @@
     flex-direction: column;
 }
 
-#console > .engi > .tile > .pdf {
-    flex-direction: column;
+#console > .engi .info1 {
     padding: 1vh;
     gap: 1vh;
 }
 
-#console > .engi > .tile > .pdf > .partNo {
-    font-size: 3vh;
-    text-align: center;
-}
-
-#console > .engi > .tile > .pdf .loading {
-    height: 4vh;
-    margin: auto;
-}
-
-#console > .engi > .tile .pdf.clip {
+#console > .engi .info1 .clip {
     height: 59vh;
     box-shadow: 0 0 2vh #101010 inset;
     overflow: hidden;
@@ -42,7 +31,7 @@
     display: flex;
 }
 
-#console > .engi > .tile .pdf.scroll {
+#console > .engi .info1 .scroll {
     width: 0;
     height: 59vh;
     padding: 0 50%;
@@ -54,12 +43,22 @@
     scroll-snap-type: x mandatory;
 }
 
-#console > .engi > .tile img.pdf {
+#console > .engi .info1 .pdf {
     height: 49vh;
     border-radius: 1vh;
     margin: auto 0;
     box-shadow: 0 0 2vh #101010;
     scroll-snap-align: center;
+}
+
+#console > .engi .info1 .loading {
+    height: 4vh;
+    margin: auto;
+}
+
+#console > .engi .info1 .partNo {
+    font-size: 3vh;
+    text-align: center;
 }
 
 #console > .engi > .make {
